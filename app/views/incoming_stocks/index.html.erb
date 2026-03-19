@@ -11,10 +11,6 @@
       </p>
     </div>
 
-    <div class="flex flex-wrap gap-3">
-      <%= link_to "กลับไป Forecast", forecasts_path, class: "inline-flex items-center rounded-xl bg-stone-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-stone-800" %>
-      <%= link_to "ดูรายการสั่งเข้า Stock", stock_orders_path, class: "inline-flex items-center rounded-xl border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100" %>
-    </div>
   </div>
 
   <div class="grid gap-4 md:grid-cols-3">
@@ -27,8 +23,8 @@
       <p class="mt-3 text-3xl font-semibold text-emerald-900"><%= @incoming_items.sum(&:selected_quantity) %></p>
     </div>
     <div class="rounded-3xl border border-sky-200 bg-sky-50 p-6 shadow-sm">
-      <p class="text-sm text-sky-700">มี ETA แล้ว</p>
-      <p class="mt-3 text-3xl font-semibold text-sky-900"><%= @incoming_items.count { |item| item.supply_forecast.estimated_arrival_date.present? } %></p>
+      <p class="text-sm text-sky-700">ปลายทางที่มีรายการเข้า</p>
+      <p class="mt-3 text-3xl font-semibold text-sky-900"><%= @incoming_items.map { |item| incoming_stock_location(item) }.uniq.count %></p>
     </div>
   </div>
 
@@ -47,39 +43,47 @@
         <table class="min-w-full divide-y divide-stone-200 text-sm">
           <thead class="bg-stone-50 text-left text-stone-500">
             <tr>
+              <th class="px-5 py-3 font-medium">Stock</th>
               <th class="px-5 py-3 font-medium">Model</th>
               <th class="px-5 py-3 font-medium">Color</th>
+              <th class="px-5 py-3 font-medium">Location</th>
               <th class="px-5 py-3 font-medium text-right">Qty ที่สั่ง</th>
-              <th class="px-5 py-3 font-medium">Prod. Date</th>
-              <th class="px-5 py-3 font-medium">ETA</th>
+              <th class="px-5 py-3 font-medium">In Stock</th>
               <th class="px-5 py-3 font-medium">รายการสั่งเข้า Stock</th>
-              <th class="px-5 py-3 font-medium">Incoming ตั้งแต่</th>
-              <th class="px-5 py-3 font-medium">Ref Key</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-stone-100 bg-white">
             <% @incoming_items.each do |item| %>
               <% forecast = item.supply_forecast %>
               <tr class="hover:bg-stone-50/80">
+                <td class="whitespace-nowrap px-5 py-4">
+                  <div class="font-semibold text-stone-900"><%= incoming_stock_reference(item) %></div>
+                  <div class="text-xs text-stone-500"><%= item.stock_plan.plan_no %></div>
+                </td>
                 <td class="px-5 py-4">
                   <div class="font-medium text-stone-900"><%= forecast.model_label || forecast.model_code %></div>
                   <div class="text-stone-500"><%= [forecast.model_code, forecast.grade].compact.join(" • ").presence || "-" %></div>
                 </td>
                 <td class="px-5 py-4">
-                  <div class="font-medium text-stone-900"><%= forecast.color_name || "-" %></div>
-                  <div class="text-stone-500"><%= forecast.color_code.presence || "-" %></div>
+                  <div class="flex items-center gap-3">
+                    <%= forecast_color_swatch(forecast) %>
+                    <div>
+                      <div class="font-medium text-stone-900"><%= forecast.color_name || "-" %></div>
+                    </div>
+                  </div>
                 </td>
+                <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= incoming_stock_location(item) %></td>
                 <td class="whitespace-nowrap px-5 py-4 text-right font-semibold text-stone-900"><%= item.selected_quantity %></td>
-                <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= forecast.estimated_production_date&.strftime("%d %b %Y") || "-" %></td>
-                <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= forecast.estimated_arrival_date&.strftime("%d %b %Y") || "-" %></td>
+                <td class="whitespace-nowrap px-5 py-4">
+                  <div class="font-medium text-stone-900"><%= incoming_stock_arrival_label(item) %></div>
+                  <div class="text-xs text-stone-500">พร้อมรับเข้า <%= forecast.estimated_arrival_date&.strftime("%d %b %Y") || "-" %></div>
+                </td>
                 <td class="px-5 py-4">
                   <div class="flex flex-col items-start gap-2">
                     <span class="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-800">กำลังเข้า</span>
                     <%= link_to item.stock_plan.display_title, stock_order_path(item.stock_plan), class: "inline-flex items-center rounded-xl border border-stone-300 px-3 py-2 text-xs font-medium text-stone-700 transition hover:bg-stone-100" %>
                   </div>
                 </td>
-                <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= (item.incoming_at || item.created_at).strftime("%d %b %Y %H:%M") %></td>
-                <td class="whitespace-nowrap px-5 py-4 font-mono text-xs text-stone-500"><%= forecast.source_key %></td>
               </tr>
             <% end %>
           </tbody>

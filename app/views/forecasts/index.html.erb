@@ -1,79 +1,97 @@
 <% content_for :title, "Forecast ที่สั่งเข้า Stock ได้" %>
 
-<section class="w-full space-y-8">
-  <div class="flex flex-col gap-4 rounded-3xl border border-stone-200 bg-white p-8 shadow-sm lg:flex-row lg:items-end lg:justify-between">
-    <div>
-      <p class="text-sm font-medium uppercase tracking-[0.2em] text-amber-700">Allocation Workspace</p>
-      <h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-900">Forecast สำหรับสั่งเข้า Stock</h1>
-      <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
-        ภาพรวม forecast ที่ sync มาจากบริษัทแม่ เพื่อให้ฝ่ายจัดสรรเลือกสั่งรถเข้า stock ล่วงหน้าได้จากรุ่น สี จำนวน และวันคาดการณ์เข้า
-      </p>
-    </div>
+<section class="w-full space-y-6">
+  <div class="rounded-[1.75rem] border border-stone-200 bg-stone-50 px-6 py-6">
+    <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+      <div>
+        <p class="text-sm font-medium uppercase tracking-[0.24em] text-amber-700">Allocation Workspace</p>
+        <h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-950">Forecast สำหรับสั่งเข้า Stock</h1>
+        <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
+          ภาพรวม forecast ที่ sync มาจากบริษัทแม่ เพื่อให้ฝ่ายจัดสรรเลือกสั่งรถเข้า stock ล่วงหน้าได้จากรุ่น สี จำนวน และวันคาดการณ์เข้า
+        </p>
+      </div>
 
-    <div class="flex flex-col items-start gap-3">
-      <%= form_with url: sync_forecasts_path(report_type: @current_report_type), method: :post, class: "flex flex-wrap items-center gap-3", data: { controller: "sync-feedback", action: "turbo:submit-start->sync-feedback#start turbo:submit-end->sync-feedback#reset", sync_feedback_message_value: "Syncing #{@current_report_type.titleize} feed and refreshing forecast lines..." } do %>
-        <button type="submit" data-sync-feedback-target="button" data-turbo-submits-with="Syncing <%= @current_report_type.titleize %>..." class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-700 disabled:cursor-wait disabled:bg-amber-400">
-          <span class="inline-flex h-2.5 w-2.5 rounded-full bg-white/80"></span>
-          <span>Sync <%= @current_report_type.titleize %></span>
-        </button>
-        <div data-sync-feedback-target="panel" class="hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
-          <div class="flex items-center gap-3">
-            <span class="inline-flex h-3 w-3 animate-pulse rounded-full bg-amber-500"></span>
-            <span data-sync-feedback-target="label">Syncing forecast feed...</span>
-          </div>
+      <div class="grid gap-3 sm:grid-cols-3 xl:min-w-[500px]">
+        <div class="rounded-[1.4rem] border border-white bg-white px-5 py-4 shadow-sm">
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400">Report</p>
+          <p class="mt-2 text-2xl font-semibold text-stone-950"><%= @current_report_type.titleize %></p>
         </div>
-      <% end %>
-      <%= link_to "ดูรายการสั่งเข้า Stock", stock_orders_path, class: "inline-flex items-center rounded-xl border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100" %>
-      <%= link_to "ดู Stock กำลังเข้า", incoming_stocks_path, class: "inline-flex items-center rounded-xl border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100" %>
-      <%= link_to "กลับหน้าแรก", root_path, class: "inline-flex items-center rounded-xl border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100" %>
+        <div class="rounded-[1.4rem] border border-white bg-white px-5 py-4 shadow-sm">
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400">Forecast Batches</p>
+          <p class="mt-2 text-2xl font-semibold text-stone-950"><%= @forecast_batches.size %></p>
+        </div>
+        <div class="rounded-[1.4rem] border border-white bg-white px-5 py-4 shadow-sm">
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400">Incoming Ready</p>
+          <p class="mt-2 text-2xl font-semibold text-stone-950"><%= @forecasts.count { |forecast| forecast.stock_plan_item&.status_incoming? } %></p>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="flex flex-wrap gap-2">
-    <% [["daily", "Daily"], ["weekly", "Weekly"], ["monthly", "Monthly"]].each do |report_type, label| %>
-      <% active = @current_report_type == report_type %>
-      <% classes = if active
-        "rounded-full bg-stone-900 px-4 py-2 text-sm font-medium text-white"
-      else
-        "rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50"
-      end %>
-      <%= link_to label, forecasts_path(report_type: report_type, q: @query.presence), class: classes %>
+  <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div class="flex flex-wrap gap-2">
+      <% [["daily", "Daily"], ["weekly", "Weekly"], ["monthly", "Monthly"]].each do |report_type, label| %>
+        <% active = @current_report_type == report_type %>
+        <% classes = if active
+          "rounded-2xl bg-stone-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm"
+        else
+          "rounded-2xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-600 hover:bg-stone-50"
+        end %>
+        <%= link_to label, forecasts_path(report_type: report_type, q: @query.presence), class: classes %>
+      <% end %>
+    </div>
+
+    <%= form_with url: sync_forecasts_path(report_type: @current_report_type), method: :post, class: "flex flex-wrap items-center gap-3", data: { controller: "sync-feedback", action: "turbo:submit-start->sync-feedback#start turbo:submit-end->sync-feedback#reset", sync_feedback_message_value: "Syncing #{@current_report_type.titleize} feed and refreshing forecast lines..." } do %>
+      <button type="submit" data-sync-feedback-target="button" data-turbo-submits-with="Syncing forecast..." class="inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-amber-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-amber-700 disabled:cursor-wait disabled:bg-amber-400">
+        <span class="inline-flex h-2.5 w-2.5 rounded-full bg-white/80"></span>
+        <span>Sync Forecast</span>
+      </button>
+      <div data-sync-feedback-target="panel" class="hidden rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div class="flex items-center gap-3">
+          <span class="inline-flex h-3 w-3 animate-pulse rounded-full bg-amber-500"></span>
+          <span data-sync-feedback-target="label">Syncing forecast feed...</span>
+        </div>
+      </div>
     <% end %>
   </div>
 
-  <%= form_with url: forecasts_path, method: :get, class: "flex flex-col gap-3 rounded-3xl border border-stone-200 bg-white p-5 shadow-sm lg:flex-row lg:items-center" do |form| %>
-    <%= hidden_field_tag :report_type, @current_report_type %>
-    <div class="flex-1">
-      <%= form.label :q, "ค้นหา Model หรือ รุ่น", class: "block text-sm font-medium text-stone-700" %>
-      <%= form.search_field :q, value: @query, placeholder: "เช่น Yaris, Hilux, Premium Luxury", class: "mt-2 block w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm focus:border-stone-500 focus:outline-none" %>
-    </div>
-    <div class="flex flex-wrap gap-3 pt-6 lg:pt-0">
-      <%= form.submit "ค้นหา", class: "inline-flex cursor-pointer items-center rounded-xl bg-stone-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-stone-800" %>
-      <% if @query.present? %>
-        <%= link_to "ล้างคำค้น", forecasts_path(report_type: @current_report_type), class: "inline-flex items-center rounded-xl border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100" %>
-      <% end %>
-    </div>
-  <% end %>
-
-  <%= form_with url: new_forecast_stock_orders_path, method: :get, scope: nil, data: { controller: "bulk-select" }, class: "overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm" do %>
-    <%= hidden_field_tag :report_type, @current_report_type %>
-
-    <div class="border-b border-stone-200 px-6 py-4">
-      <h2 class="text-lg font-semibold text-stone-900">Available Forecast Feed</h2>
-      <p class="mt-1 text-sm text-stone-500">
-        1 batch จากบริษัทแม่สามารถมีหลาย line ตาม model, color และ quantity ได้ในรอบเดียวกัน
-        และตอนนี้กำลังดูชุดข้อมูล <span class="font-medium text-stone-700"><%= @current_report_type.titleize %></span>
-      </p>
-      <% if @latest_sync_run.present? %>
-        <p class="mt-2 text-xs uppercase tracking-[0.18em] text-stone-400">
-          latest sync <%= @latest_sync_run.completed_at&.strftime("%d %b %Y %H:%M") || @latest_sync_run.started_at.strftime("%d %b %Y %H:%M") %>
-        </p>
-        <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-stone-500">
-          <span class="rounded-full bg-violet-100 px-3 py-1 font-medium text-violet-800">New record</span>
-          <span>รายการที่เพิ่งเข้ามาจากรอบ sync ล่าสุด</span>
+  <div class="rounded-[1.75rem] border border-stone-200 bg-white shadow-sm">
+    <div class="border-b border-stone-200 bg-stone-50 px-6 py-5">
+      <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-stone-900">Available Forecast Feed</h2>
+          <p class="mt-1 text-sm text-stone-500">
+            1 batch จากบริษัทแม่สามารถมีหลาย line ตาม model, color และ quantity ได้ในรอบเดียวกัน
+            และตอนนี้กำลังดูชุดข้อมูล <span class="font-medium text-stone-700"><%= @current_report_type.titleize %></span>
+          </p>
+          <% if @latest_sync_run.present? %>
+            <p class="mt-2 text-xs uppercase tracking-[0.18em] text-stone-400">
+              latest sync <%= @latest_sync_run.completed_at&.strftime("%d %b %Y %H:%M") || @latest_sync_run.started_at.strftime("%d %b %Y %H:%M") %>
+            </p>
+          <% end %>
         </div>
-      <% end %>
+
+        <div class="flex flex-col gap-3 xl:min-w-[620px]">
+          <%= form_with url: forecasts_path, method: :get, class: "flex flex-col gap-3 xl:flex-row xl:items-center" do |search_form| %>
+            <%= hidden_field_tag :report_type, @current_report_type %>
+            <div class="flex-1">
+              <%= search_form.search_field :q, value: @query, placeholder: "ค้นหา Model หรือ รุ่น เช่น Yaris, Hilux, Premium Luxury", class: "block w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm focus:border-stone-500 focus:outline-none" %>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <%= search_form.submit "ค้นหา", class: "inline-flex cursor-pointer items-center rounded-2xl bg-stone-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-stone-800" %>
+              <% if @query.present? %>
+                <%= link_to "ล้างคำค้น", forecasts_path(report_type: @current_report_type), class: "inline-flex items-center rounded-2xl border border-stone-300 px-4 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100" %>
+              <% end %>
+            </div>
+          <% end %>
+
+        </div>
+      </div>
     </div>
+  </div>
+
+  <%= form_with url: new_forecast_stock_orders_path, method: :get, scope: nil, data: { controller: "bulk-select" }, class: "overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-sm" do %>
+    <%= hidden_field_tag :report_type, @current_report_type %>
 
     <% if @forecast_batches.blank? %>
       <div class="px-6 py-10 text-center">
@@ -83,139 +101,139 @@
     <% else %>
       <div class="divide-y divide-stone-200">
         <% @forecast_batches.each do |batch_key, forecasts| %>
-        <% first = forecasts.first %>
-        <div class="px-6 py-4">
-          <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <div class="flex items-center gap-3">
-                <span class="rounded-full bg-stone-900 px-3 py-1 text-xs font-medium text-white"><%= first.source_report_type.humanize %></span>
-                <p class="font-mono text-sm text-stone-500"><%= batch_key %></p>
+          <% first = forecasts.first %>
+          <div class="px-5 py-5 lg:px-6">
+            <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+              <div>
+                <div class="flex flex-wrap items-center gap-3">
+                  <span class="rounded-full bg-stone-900 px-3 py-1 text-xs font-medium text-white"><%= first.source_report_type.humanize %></span>
+                  <p class="font-mono text-sm text-stone-500"><%= batch_key %></p>
+                </div>
+                <p class="mt-2 text-sm text-stone-500">
+                  generated <%= first.source_generated_on&.strftime("%d %b %Y") || "-" %> •
+                  <%= forecasts.count %> lines in this batch
+                </p>
               </div>
-              <p class="mt-2 text-sm text-stone-500">
-                generated <%= first.source_generated_on&.strftime("%d %b %Y") || "-" %> •
-                <%= forecasts.count %> lines in this batch
-              </p>
+
+              <div class="flex flex-wrap items-center gap-3">
+                <span class="rounded-2xl bg-stone-100 px-3 py-2 text-sm font-medium text-stone-700">
+                  เลือกแล้ว <span data-bulk-select-target="count">0</span> รายการ
+                </span>
+                <button type="submit" data-bulk-select-target="submit" class="inline-flex cursor-pointer items-center rounded-2xl bg-amber-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-amber-300">
+                  สั่งเข้า Stock จากรายการที่เลือก
+                </button>
+              </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3">
-              <span class="rounded-full bg-stone-100 px-3 py-2 text-sm font-medium text-stone-700">
-                เลือกแล้ว <span data-bulk-select-target="count">0</span> รายการ
-              </span>
-              <button type="submit" data-bulk-select-target="submit" class="inline-flex cursor-pointer items-center rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-amber-300">
-                สั่งเข้า Stock จากรายการที่เลือก
-              </button>
-            </div>
-          </div>
-
-          <div class="mt-4 overflow-x-auto rounded-2xl border border-stone-200">
-            <table class="min-w-full divide-y divide-stone-200 text-sm">
-              <thead class="bg-stone-50 text-left text-stone-500">
-                <tr>
-                  <th class="px-5 py-3 font-medium">
-                    <input type="checkbox" data-bulk-select-target="master" data-action="bulk-select#toggleAll" class="h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500">
-                  </th>
-                  <th class="px-5 py-3 font-medium">Model</th>
-                  <th class="px-5 py-3 font-medium">Color</th>
-                  <th class="px-5 py-3 font-medium text-right">Qty</th>
-                  <th class="px-5 py-3 font-medium">Prod. Date</th>
-                  <th class="px-5 py-3 font-medium">ETA</th>
-                  <th class="px-5 py-3 font-medium">Latest Sync</th>
-                  <th class="px-5 py-3 font-medium">สถานะการสั่ง</th>
-                  <th class="px-5 py-3 font-medium">Ref Key</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-stone-100 bg-white">
-                <% forecasts.each do |forecast| %>
-                  <% selectable = forecast.stock_plan_item.blank? && forecast.quantity_available.present? %>
-                  <% synced_in_latest_run = @latest_sync_run.present? && forecast.forecast_sync_run_id == @latest_sync_run.id %>
-                  <% row_classes = if synced_in_latest_run && forecast.last_sync_change_kind_inserted?
-                    "bg-violet-50 hover:bg-violet-100/70"
-                  elsif synced_in_latest_run && forecast.last_sync_change_kind_updated?
-                    "bg-orange-50 hover:bg-orange-100/70"
-                  else
-                    "hover:bg-stone-50/80"
-                  end %>
-                  <tr class="<%= row_classes %>">
-                    <td class="whitespace-nowrap px-5 py-4">
-                      <input type="checkbox"
-                             name="forecast_ids[]"
-                             value="<%= forecast.id %>"
-                             <%= "disabled" unless selectable %>
-                             data-bulk-select-target="checkbox"
-                             data-action="bulk-select#toggle"
-                             class="h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100">
-                    </td>
-                    <td class="px-5 py-4">
-                      <div class="flex flex-wrap items-center gap-2">
-                        <span class="font-medium text-stone-900"><%= forecast.model_label || forecast.model_code %></span>
-                        <% if synced_in_latest_run && forecast.last_sync_change_kind_inserted? %>
-                          <span class="rounded-full bg-violet-200 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-900">New</span>
-                        <% elsif synced_in_latest_run && forecast.last_sync_change_kind_updated? %>
-                          <span class="rounded-full bg-orange-200 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-orange-900">Updated</span>
-                        <% end %>
-                      </div>
-                      <div class="text-stone-500"><%= [forecast.model_code, forecast.grade].compact.join(" • ") %></div>
-                    </td>
-                    <td class="px-5 py-4">
-                      <div class="flex items-center justify-center">
-                        <%= forecast_color_swatch(forecast) %>
-                      </div>
-                    </td>
-                    <td class="whitespace-nowrap px-5 py-4 text-right font-semibold text-stone-900"><%= forecast.quantity_available || "-" %></td>
-                    <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= forecast.estimated_production_date&.strftime("%d %b %Y") || "-" %></td>
-                    <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= forecast.estimated_arrival_date&.strftime("%d %b %Y") || "-" %></td>
-                    <td class="whitespace-nowrap px-5 py-4">
-                      <% sync_badge_classes, sync_badge_label = if synced_in_latest_run && forecast.last_sync_change_kind_inserted?
-                        ["bg-violet-100 text-violet-800", "New record"]
-                      elsif synced_in_latest_run && forecast.last_sync_change_kind_updated?
-                        ["bg-orange-100 text-orange-800", "Updated"]
-                      elsif synced_in_latest_run && forecast.last_sync_change_kind_unchanged?
-                        ["bg-stone-200 text-stone-700", "No change"]
-                      else
-                        ["bg-stone-100 text-stone-500", "Earlier sync"]
-                      end %>
-                      <span class="<%= sync_badge_classes %> rounded-full px-3 py-1 text-xs font-medium"><%= sync_badge_label %></span>
-                    </td>
-                    <td class="whitespace-nowrap px-5 py-4">
-                      <% if forecast.stock_plan_item.present? %>
-                        <% item = forecast.stock_plan_item %>
-                        <% if item.status_incoming? %>
-                          <% action_label = "กำลังเข้า" %>
-                          <% badge_classes = "bg-emerald-100 text-emerald-800" %>
-                        <% elsif forecast.status_changed_after_selection? %>
-                          <% action_label = "ข้อมูลเปลี่ยนหลังสั่ง" %>
-                          <% badge_classes = "bg-amber-100 text-amber-800" %>
-                        <% else %>
-                          <% action_label = "สั่งแล้ว" %>
-                          <% badge_classes = "bg-sky-100 text-sky-800" %>
-                        <% end %>
-                        <div class="flex flex-col items-start gap-2">
-                          <span class="<%= badge_classes %> inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"><%= action_label %></span>
-                          <%= link_to stock_order_path(item.stock_plan), class: "inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-medium text-stone-700 shadow-sm transition hover:border-stone-400 hover:bg-stone-50 hover:text-stone-900" do %>
-                            <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
-                              <path fill-rule="evenodd" d="M2 5.75A2.75 2.75 0 0 1 4.75 3h10.5A2.75 2.75 0 0 1 18 5.75v8.5A2.75 2.75 0 0 1 15.25 17H4.75A2.75 2.75 0 0 1 2 14.25v-8.5Zm2.75-1.25c-.69 0-1.25.56-1.25 1.25v8.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-8.5c0-.69-.56-1.25-1.25-1.25H4.75Z" clip-rule="evenodd" />
-                              <path d="M6.5 9.25a.75.75 0 0 1 .75-.75h5.19l-1.72-1.72a.75.75 0 1 1 1.06-1.06l3 3a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 0 1-1.06-1.06l1.72-1.72H7.25a.75.75 0 0 1-.75-.75Z" />
-                            </svg>
-                            <span>ดูรายการ</span>
+            <div class="mt-4 overflow-x-auto rounded-2xl border border-stone-200">
+              <table class="min-w-full divide-y divide-stone-200 text-sm">
+                <thead class="bg-stone-50 text-left text-stone-500">
+                  <tr>
+                    <th class="px-5 py-3 font-medium">
+                      <input type="checkbox" data-bulk-select-target="master" data-action="bulk-select#toggleAll" class="h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500">
+                    </th>
+                    <th class="px-5 py-3 font-medium">Model</th>
+                    <th class="px-5 py-3 font-medium">Color</th>
+                    <th class="px-5 py-3 font-medium text-right">Qty</th>
+                    <th class="px-5 py-3 font-medium">Prod. Date</th>
+                    <th class="px-5 py-3 font-medium">ETA</th>
+                    <th class="px-5 py-3 font-medium">Latest Sync</th>
+                    <th class="px-5 py-3 font-medium">สถานะการสั่ง</th>
+                    <th class="px-5 py-3 font-medium">Ref Key</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-stone-100 bg-white">
+                  <% forecasts.each do |forecast| %>
+                    <% selectable = forecast.stock_plan_item.blank? && forecast.quantity_available.present? %>
+                    <% synced_in_latest_run = @latest_sync_run.present? && forecast.forecast_sync_run_id == @latest_sync_run.id %>
+                    <% row_classes = if synced_in_latest_run && forecast.last_sync_change_kind_inserted?
+                      "bg-violet-50 hover:bg-violet-100/70"
+                    elsif synced_in_latest_run && forecast.last_sync_change_kind_updated?
+                      "bg-orange-50 hover:bg-orange-100/70"
+                    else
+                      "hover:bg-stone-50/80"
+                    end %>
+                    <tr class="<%= row_classes %>">
+                      <td class="whitespace-nowrap px-5 py-4">
+                        <input type="checkbox"
+                               name="forecast_ids[]"
+                               value="<%= forecast.id %>"
+                               <%= "disabled" unless selectable %>
+                               data-bulk-select-target="checkbox"
+                               data-action="bulk-select#toggle"
+                               class="h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100">
+                      </td>
+                      <td class="px-5 py-4">
+                        <div class="flex flex-wrap items-center gap-2">
+                          <span class="font-medium text-stone-900"><%= forecast.model_label || forecast.model_code %></span>
+                          <% if synced_in_latest_run && forecast.last_sync_change_kind_inserted? %>
+                            <span class="rounded-full bg-violet-200 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-900">New</span>
+                          <% elsif synced_in_latest_run && forecast.last_sync_change_kind_updated? %>
+                            <span class="rounded-full bg-orange-200 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-orange-900">Updated</span>
                           <% end %>
                         </div>
-                      <% elsif forecast.quantity_available.blank? %>
-                        <span class="inline-flex items-center rounded-xl border border-stone-200 px-3 py-2 text-xs font-medium text-stone-400">
-                          รอข้อมูล Qty
-                        </span>
-                      <% else %>
-                        <span class="inline-flex items-center rounded-xl bg-emerald-100 px-3 py-2 text-xs font-medium text-emerald-800">
-                          พร้อมเลือก
-                        </span>
-                      <% end %>
-                    </td>
-                    <td class="whitespace-nowrap px-5 py-4 font-mono text-xs text-stone-500"><%= forecast.source_key %></td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
+                        <div class="text-stone-500"><%= [forecast.model_code, forecast.grade].compact.join(" • ") %></div>
+                      </td>
+                      <td class="px-5 py-4">
+                        <div class="flex items-center justify-center">
+                          <%= forecast_color_swatch(forecast) %>
+                        </div>
+                      </td>
+                      <td class="whitespace-nowrap px-5 py-4 text-right font-semibold text-stone-900"><%= forecast.quantity_available || "-" %></td>
+                      <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= forecast.estimated_production_date&.strftime("%d %b %Y") || "-" %></td>
+                      <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= forecast.estimated_arrival_date&.strftime("%d %b %Y") || "-" %></td>
+                      <td class="whitespace-nowrap px-5 py-4">
+                        <% sync_badge_classes, sync_badge_label = if synced_in_latest_run && forecast.last_sync_change_kind_inserted?
+                          ["bg-violet-100 text-violet-800", "New record"]
+                        elsif synced_in_latest_run && forecast.last_sync_change_kind_updated?
+                          ["bg-orange-100 text-orange-800", "Updated"]
+                        elsif synced_in_latest_run && forecast.last_sync_change_kind_unchanged?
+                          ["bg-stone-200 text-stone-700", "No change"]
+                        else
+                          ["bg-stone-100 text-stone-500", "Earlier sync"]
+                        end %>
+                        <span class="<%= sync_badge_classes %> rounded-full px-3 py-1 text-xs font-medium"><%= sync_badge_label %></span>
+                      </td>
+                      <td class="whitespace-nowrap px-5 py-4">
+                        <% if forecast.stock_plan_item.present? %>
+                          <% item = forecast.stock_plan_item %>
+                          <% if item.status_incoming? %>
+                            <% action_label = "กำลังเข้า" %>
+                            <% badge_classes = "bg-emerald-100 text-emerald-800" %>
+                          <% elsif forecast.status_changed_after_selection? %>
+                            <% action_label = "ข้อมูลเปลี่ยนหลังสั่ง" %>
+                            <% badge_classes = "bg-amber-100 text-amber-800" %>
+                          <% else %>
+                            <% action_label = "สั่งแล้ว" %>
+                            <% badge_classes = "bg-sky-100 text-sky-800" %>
+                          <% end %>
+                          <div class="flex flex-col items-start gap-2">
+                            <span class="<%= badge_classes %> inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"><%= action_label %></span>
+                            <%= link_to stock_order_path(item.stock_plan), class: "inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-medium text-stone-700 shadow-sm transition hover:border-stone-400 hover:bg-stone-50 hover:text-stone-900" do %>
+                              <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+                                <path fill-rule="evenodd" d="M2 5.75A2.75 2.75 0 0 1 4.75 3h10.5A2.75 2.75 0 0 1 18 5.75v8.5A2.75 2.75 0 0 1 15.25 17H4.75A2.75 2.75 0 0 1 2 14.25v-8.5Zm2.75-1.25c-.69 0-1.25.56-1.25 1.25v8.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-8.5c0-.69-.56-1.25-1.25-1.25H4.75Z" clip-rule="evenodd" />
+                                <path d="M6.5 9.25a.75.75 0 0 1 .75-.75h5.19l-1.72-1.72a.75.75 0 1 1 1.06-1.06l3 3a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 0 1-1.06-1.06l1.72-1.72H7.25a.75.75 0 0 1-.75-.75Z" />
+                              </svg>
+                              <span>ดูรายการ</span>
+                            <% end %>
+                          </div>
+                        <% elsif forecast.quantity_available.blank? %>
+                          <span class="inline-flex items-center rounded-xl border border-stone-200 px-3 py-2 text-xs font-medium text-stone-400">
+                            รอข้อมูล Qty
+                          </span>
+                        <% else %>
+                          <span class="inline-flex items-center rounded-xl bg-emerald-100 px-3 py-2 text-xs font-medium text-emerald-800">
+                            พร้อมเลือก
+                          </span>
+                        <% end %>
+                      </td>
+                      <td class="whitespace-nowrap px-5 py-4 font-mono text-xs text-stone-500"><%= forecast.source_key %></td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
         <% end %>
       </div>
     <% end %>

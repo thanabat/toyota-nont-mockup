@@ -35,6 +35,74 @@ module ApplicationHelper
     )
   end
 
+  def sidebar_link_classes(path)
+    base_classes = "group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition"
+    active_classes = "bg-amber-50 text-amber-800 shadow-sm ring-1 ring-amber-100"
+    inactive_classes = "text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+
+    active = if path == root_path
+      request.path == path
+    else
+      request.path == path || request.path.start_with?("#{path}/")
+    end
+
+    [ base_classes, active ? active_classes : inactive_classes ].join(" ")
+  end
+
+  def sidebar_icon(name)
+    paths = case name
+    when :home
+      '<path d="M3 9.5 10 4l7 5.5V17a1 1 0 0 1-1 1h-4v-5H8v5H4a1 1 0 0 1-1-1V9.5Z" />'
+    when :forecast
+      '<path d="M4 4h12v3H4zM4 9h12v7H4zM6 11h3v3H6zM11 11h3v1h-3zM11 13h3v1h-3z" />'
+    when :orders
+      '<path d="M5 4h8l3 3v9H5V4Zm8 1.5V8h2.5" /><path d="M7 11h6M7 13.5h6" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" />'
+    when :incoming
+      '<path d="M10 3v8" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" /><path d="m6.5 8.5 3.5 3.5 3.5-3.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round" /><path d="M4 15h12" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" />'
+    else
+      '<circle cx="10" cy="10" r="6" />'
+    end
+
+    content_tag(:svg, paths.html_safe, viewBox: "0 0 20 20", fill: "currentColor", class: "h-4 w-4")
+  end
+
+  def incoming_stock_reference(item)
+    "STK-#{item.id.to_s.rjust(4, '0')}"
+  end
+
+  def incoming_stock_location(item)
+    note = item.note.to_s.downcase
+
+    return "โชว์รูมบางบัวทอง" if note.include?("bang bua thong") || note.include?("บางบัวทอง")
+    return "โชว์รูมปากเกร็ด" if note.include?("ปากเกร็ด") || note.include?("pak kret")
+
+    case item.supply_forecast.model_code.to_s
+    when /HILUX|REVO/
+      "ลานพักรถรัตนาธิเบศร์"
+    when /FORTUNER|CAMRY|YARIS-CROSS/
+      "โชว์รูมบางบัวทอง"
+    when /YARIS-ATIV|COROLLA/
+      "ศูนย์กระจายนนทบุรี"
+    else
+      "โชว์รูมรัตนาธิเบศร์"
+    end
+  end
+
+  def incoming_stock_arrival_label(item)
+    arrival_date = item.supply_forecast.estimated_arrival_date
+    return "-" if arrival_date.blank?
+
+    days_remaining = (arrival_date - Date.current).to_i
+
+    if days_remaining.positive?
+      "อีก #{days_remaining} วัน"
+    elsif days_remaining.zero?
+      "ถึงวันนี้"
+    else
+      "ช้า #{days_remaining.abs} วัน"
+    end
+  end
+
   private
 
   def forecast_color_style_for(forecast)

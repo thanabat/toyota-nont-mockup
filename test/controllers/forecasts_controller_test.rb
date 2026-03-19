@@ -50,7 +50,6 @@ class ForecastsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", /Forecast สำหรับสั่งเข้า Stock/
     assert_select "a", /Daily/
-    assert_select "a", /ดูรายการสั่งเข้า Stock/
     assert_select "button", /สั่งเข้า Stock จากรายการที่เลือก/
     assert_select "span", /เลือกแล้ว 0 รายการ/
     assert_select "p", /FC-TEST-001/

@@ -50,6 +50,12 @@ class IncomingStocksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", /Stock กำลังเข้า/
     assert_select "td", /Camry HEV Premium Luxury/
+    assert_select "th", /Stock/
+    assert_select "th", /Location/
+    assert_select "th", /In Stock/
+    assert_select "td", /STK-/
+    assert_select "th", text: /ETA/, count: 0
+    assert_select "th", text: /Ref Key/, count: 0
     assert_select "td", text: /Hilux Revo Prerunner/, count: 0
   end
 end
