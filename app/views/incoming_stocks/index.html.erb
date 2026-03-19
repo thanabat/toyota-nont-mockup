@@ -1,9 +1,9 @@
 <% content_for :title, "Stock กำลังเข้า" %>
 
 <section class="space-y-8">
-  <div class="flex flex-col gap-4 rounded-3xl border border-stone-200 bg-white p-8 shadow-sm lg:flex-row lg:items-end lg:justify-between">
+  <div class="app-soft-card flex flex-col gap-4 rounded-3xl border p-8 shadow-sm lg:flex-row lg:items-end lg:justify-between">
     <div>
-      <p class="text-sm font-medium uppercase tracking-[0.2em] text-amber-700">Sales Preview</p>
+      <p class="app-eyebrow text-sm font-medium uppercase tracking-[0.2em]">Sales Preview</p>
       <h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-900">Stock กำลังเข้า</h1>
       <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
         มุมมองนี้รวมรายการที่ฝ่ายจัดสรรสั่งเข้า stock แล้ว และบริษัทแม่ส่งข้อมูลกลับมาครบพอจนมองเป็น pipeline stock ได้
@@ -14,21 +14,21 @@
   </div>
 
   <div class="grid gap-4 md:grid-cols-3">
-    <div class="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
+    <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
       <p class="text-sm text-stone-500">จำนวนรายการที่กำลังเข้า</p>
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @incoming_items.size %></p>
     </div>
-    <div class="rounded-3xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
-      <p class="text-sm text-emerald-700">จำนวนรถรวม</p>
-      <p class="mt-3 text-3xl font-semibold text-emerald-900"><%= @incoming_items.sum(&:selected_quantity) %></p>
+    <div class="rounded-3xl border border-[#fecdd3] bg-[#fff1f2] p-6 shadow-sm">
+      <p class="text-sm text-[#be123c]">จำนวนรถรวม</p>
+      <p class="mt-3 text-3xl font-semibold text-[#881337]"><%= @incoming_items.sum(&:selected_quantity) %></p>
     </div>
-    <div class="rounded-3xl border border-sky-200 bg-sky-50 p-6 shadow-sm">
-      <p class="text-sm text-sky-700">ปลายทางที่มีรายการเข้า</p>
-      <p class="mt-3 text-3xl font-semibold text-sky-900"><%= @incoming_items.map { |item| incoming_stock_location(item) }.uniq.count %></p>
+    <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
+      <p class="text-sm text-stone-500">ปลายทางที่มีรายการเข้า</p>
+      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @incoming_items.map { |item| incoming_stock_location(item) }.uniq.count %></p>
     </div>
   </div>
 
-  <div class="overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
+  <div class="app-soft-card overflow-hidden rounded-3xl border shadow-sm">
     <div class="border-b border-stone-200 px-6 py-4">
       <h2 class="text-lg font-semibold text-stone-900">รายการ Incoming Stock</h2>
     </div>

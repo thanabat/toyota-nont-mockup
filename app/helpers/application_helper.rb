@@ -37,8 +37,8 @@ module ApplicationHelper
 
   def sidebar_link_classes(path)
     base_classes = "group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition"
-    active_classes = "bg-amber-50 text-amber-800 shadow-sm ring-1 ring-amber-100"
-    inactive_classes = "text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+    active_classes = "app-nav-link--active"
+    inactive_classes = "app-nav-link--inactive"
 
     active = if path == root_path
       request.path == path

@@ -23,42 +23,42 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(245,158,11,0.14),_transparent_34%),linear-gradient(180deg,_#f6f5f1_0%,_#f2f1ed_100%)] text-stone-900">
+  <body class="app-body min-h-screen text-stone-900">
     <main class="mx-auto min-h-screen w-full max-w-[1500px] px-4 py-4 lg:px-6 lg:py-6">
       <div class="grid min-h-[calc(100vh-2rem)] gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside class="rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-[0_24px_70px_rgba(28,25,23,0.10)] backdrop-blur">
+        <aside class="app-sidebar-panel rounded-[2rem] border p-5 backdrop-blur">
           <div class="flex h-full flex-col">
-            <div class="rounded-[1.5rem] border border-stone-200 bg-stone-50 px-5 py-6">
-              <p class="text-xs font-semibold uppercase tracking-[0.3em] text-amber-700">Toyota</p>
+            <div class="app-soft-tint rounded-[1.5rem] border px-5 py-6">
+              <p class="app-eyebrow text-xs font-semibold uppercase tracking-[0.3em]">Toyota</p>
               <h1 class="mt-3 text-2xl font-semibold tracking-tight text-stone-950">Stock Flow</h1>
               <p class="mt-2 text-sm leading-6 text-stone-500">Prototype สำหรับฝ่ายจัดสรรและฝ่ายขายในการมองเห็น forecast, รายการสั่ง และ stock กำลังเข้า</p>
             </div>
 
             <nav class="mt-6 space-y-2">
               <%= link_to root_path, class: sidebar_link_classes(root_path) do %>
-                <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-stone-100 text-stone-700"><%= sidebar_icon(:home) %></span>
+                <span class="app-nav-icon inline-flex h-9 w-9 items-center justify-center rounded-2xl"><%= sidebar_icon(:home) %></span>
                 <span>Overview</span>
               <% end %>
               <%= link_to forecasts_path, class: sidebar_link_classes(forecasts_path) do %>
-                <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-stone-100 text-stone-700"><%= sidebar_icon(:forecast) %></span>
+                <span class="app-nav-icon inline-flex h-9 w-9 items-center justify-center rounded-2xl"><%= sidebar_icon(:forecast) %></span>
                 <span>Forecast</span>
               <% end %>
               <%= link_to stock_orders_path, class: sidebar_link_classes(stock_orders_path) do %>
-                <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-stone-100 text-stone-700"><%= sidebar_icon(:orders) %></span>
+                <span class="app-nav-icon inline-flex h-9 w-9 items-center justify-center rounded-2xl"><%= sidebar_icon(:orders) %></span>
                 <span>รายการสั่งเข้า Stock</span>
               <% end %>
               <%= link_to incoming_stocks_path, class: sidebar_link_classes(incoming_stocks_path) do %>
-                <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-stone-100 text-stone-700"><%= sidebar_icon(:incoming) %></span>
+                <span class="app-nav-icon inline-flex h-9 w-9 items-center justify-center rounded-2xl"><%= sidebar_icon(:incoming) %></span>
                 <span>Stock กำลังเข้า</span>
               <% end %>
             </nav>
 
-            <div class="mt-8 rounded-[1.5rem] border border-stone-200 bg-stone-50 px-5 py-4 text-sm text-stone-600">
+            <div class="app-soft-tint mt-8 rounded-[1.5rem] border px-5 py-4 text-sm text-stone-600">
               <p class="font-medium text-stone-900">Demo Notes</p>
               <p class="mt-2 leading-6">กด `Sync` เพื่อจำลองข้อมูลตอบกลับจากบริษัทแม่ และดูการไหลของรายการจาก forecast ไปเป็น incoming stock</p>
             </div>
 
-            <div class="mt-auto rounded-[1.5rem] border border-stone-200 bg-white px-5 py-4">
+            <div class="app-soft-card mt-auto rounded-[1.5rem] border px-5 py-4">
               <p class="text-xs font-semibold uppercase tracking-[0.24em] text-stone-400">Workspace</p>
               <p class="mt-2 text-sm font-medium text-stone-900">Allocation Team</p>
               <p class="mt-1 text-sm text-stone-500">ใช้ sidebar นี้เพื่อสลับมุมมองหลักของ flow</p>
@@ -66,14 +66,14 @@
           </div>
         </aside>
 
-        <div class="rounded-[2rem] border border-white/70 bg-white/80 p-4 shadow-[0_24px_70px_rgba(28,25,23,0.08)] backdrop-blur lg:p-6">
+        <div class="app-shell-panel rounded-[2rem] border p-4 backdrop-blur lg:p-6">
           <% if notice.present? %>
-            <div class="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            <div class="mb-4 rounded-2xl border border-[#fecdd3] bg-[#fff1f2] px-4 py-3 text-sm text-[#be123c]">
               <%= notice %>
             </div>
           <% end %>
           <% if alert.present? %>
-            <div class="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+            <div class="mb-4 rounded-2xl border border-[#fecdd3] bg-[#fff1f2] px-4 py-3 text-sm text-[#be123c]">
               <%= alert %>
             </div>
           <% end %>

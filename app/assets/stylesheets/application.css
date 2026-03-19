@@ -8,3 +8,142 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+
+:root {
+  --app-primary: #e20712;
+  --app-primary-strong: #bf0610;
+  --app-primary-soft: #fff1f2;
+  --app-primary-border: #fecdd3;
+  --app-secondary: #15161b;
+  --app-secondary-strong: #0f1014;
+  --app-muted: #6b7280;
+  --app-line: #e5e7eb;
+  --app-surface: rgba(255, 255, 255, 0.86);
+}
+
+.app-body {
+  background:
+    linear-gradient(135deg, rgba(226, 7, 18, 0.08) 0%, rgba(255, 255, 255, 0) 36%),
+    linear-gradient(180deg, #f7f7f8 0%, #f1f3f5 100%);
+  color: var(--app-secondary);
+}
+
+.app-shell-panel {
+  border-color: rgba(255, 255, 255, 0.72);
+  background: var(--app-surface);
+  box-shadow: 0 24px 70px rgba(21, 22, 27, 0.08);
+}
+
+.app-sidebar-panel {
+  border-color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 24px 70px rgba(21, 22, 27, 0.12);
+}
+
+.app-soft-card {
+  border-color: var(--app-line);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(249, 250, 251, 0.92));
+}
+
+.app-soft-tint {
+  border-color: var(--app-line);
+  background: linear-gradient(135deg, rgba(226, 7, 18, 0.04), rgba(255, 255, 255, 0.96));
+}
+
+.app-eyebrow {
+  color: var(--app-primary);
+}
+
+.app-btn-primary {
+  border: 1px solid var(--app-primary);
+  background: var(--app-primary);
+  color: #fff;
+}
+
+.app-btn-primary:hover {
+  background: var(--app-primary-strong);
+}
+
+.app-btn-secondary {
+  border: 1px solid var(--app-secondary);
+  background: var(--app-secondary);
+  color: #fff;
+}
+
+.app-btn-secondary:hover {
+  background: #20222a;
+}
+
+.app-btn-ghost {
+  border: 1px solid var(--app-line);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--app-secondary);
+}
+
+.app-btn-ghost:hover {
+  background: #f9fafb;
+}
+
+.app-nav-link--active {
+  background: linear-gradient(90deg, rgba(226, 7, 18, 0.12), rgba(226, 7, 18, 0.03));
+  color: var(--app-secondary);
+  box-shadow: inset 3px 0 0 var(--app-primary);
+}
+
+.app-nav-link--inactive {
+  color: var(--app-muted);
+}
+
+.app-nav-link--inactive:hover {
+  background: #f3f4f6;
+  color: var(--app-secondary);
+}
+
+.app-nav-icon {
+  background: #f3f4f6;
+  color: var(--app-secondary);
+}
+
+.app-nav-link--active .app-nav-icon {
+  background: rgba(226, 7, 18, 0.12);
+  color: var(--app-primary);
+}
+
+.app-tab-active {
+  background: var(--app-secondary);
+  color: #fff;
+}
+
+.app-tab-inactive {
+  border: 1px solid var(--app-line);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--app-muted);
+}
+
+.app-tab-inactive:hover {
+  background: #f9fafb;
+  color: var(--app-secondary);
+}
+
+.app-summary-dark {
+  border-color: var(--app-secondary);
+  background: linear-gradient(135deg, var(--app-secondary), #23262e);
+  color: #f8fafc;
+}
+
+.app-breadcrumb {
+  border: 1px solid var(--app-primary-border);
+  background: linear-gradient(135deg, rgba(226, 7, 18, 0.08), rgba(255, 255, 255, 0.92));
+}
+
+.app-breadcrumb-link {
+  color: var(--app-secondary);
+}
+
+.app-breadcrumb-link:hover {
+  color: var(--app-primary);
+}
+
+.app-breadcrumb-current {
+  color: var(--app-primary);
+}

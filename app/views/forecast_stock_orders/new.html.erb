@@ -1,9 +1,9 @@
 <% content_for :title, "สั่งเข้า Stock" %>
 
 <section class="space-y-8">
-  <div class="flex flex-col gap-4 rounded-3xl border border-stone-200 bg-white p-8 shadow-sm lg:flex-row lg:items-end lg:justify-between">
+  <div class="app-soft-card flex flex-col gap-4 rounded-3xl border p-8 shadow-sm lg:flex-row lg:items-end lg:justify-between">
     <div>
-      <p class="text-sm font-medium uppercase tracking-[0.2em] text-amber-700">เลือก Forecast เข้า Stock</p>
+      <p class="app-eyebrow text-sm font-medium uppercase tracking-[0.2em]">เลือก Forecast เข้า Stock</p>
       <h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-900">สั่งเข้า Stock หลายรายการ</h1>
       <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
         ขั้นตอนนี้ใช้ยืนยัน forecast หลายรายการเข้า stock ในรอบเดียวกัน เพื่อให้ฝ่ายจัดสรรทำงานเป็นรอบจริง และให้ฝ่ายขายเห็น pipeline stock ในอนาคตได้
@@ -11,21 +11,21 @@
     </div>
 
     <div class="flex flex-wrap gap-3">
-      <%= link_to "กลับไป Forecast", forecasts_path(report_type: @report_type), class: "inline-flex items-center rounded-xl bg-stone-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-stone-800" %>
-      <%= link_to "ดูรายการสั่งทั้งหมด", stock_orders_path, class: "inline-flex items-center rounded-xl border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100" %>
+      <%= link_to "กลับไป Forecast", forecasts_path(report_type: @report_type), class: "app-btn-secondary inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium transition" %>
+      <%= link_to "ดูรายการสั่งทั้งหมด", stock_orders_path, class: "app-btn-ghost inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium transition" %>
     </div>
   </div>
 
   <div class="grid gap-4 md:grid-cols-3">
-    <div class="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
+    <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
       <p class="text-sm text-stone-500">Forecast ที่เลือก</p>
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @selected_forecasts.size %></p>
     </div>
-    <div class="rounded-3xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
-      <p class="text-sm text-emerald-700">จำนวนรถรวมจากข้อมูลที่มี</p>
-      <p class="mt-3 text-3xl font-semibold text-emerald-900"><%= @selected_forecasts.sum { |forecast| forecast.quantity_available.to_i } %></p>
+    <div class="rounded-3xl border border-[#fecdd3] bg-[#fff1f2] p-6 shadow-sm">
+      <p class="text-sm text-[#be123c]">จำนวนรถรวมจากข้อมูลที่มี</p>
+      <p class="mt-3 text-3xl font-semibold text-[#881337]"><%= @selected_forecasts.sum { |forecast| forecast.quantity_available.to_i } %></p>
     </div>
-    <div class="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
+    <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
       <p class="text-sm text-stone-500">ชุดข้อมูลที่กำลังใช้</p>
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @report_type.to_s.titleize %></p>
     </div>
@@ -51,7 +51,7 @@
       <%= hidden_field_tag "stock_order_batch[forecast_ids][]", forecast.id %>
     <% end %>
 
-    <div class="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
+    <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
       <h2 class="text-lg font-semibold text-stone-900">เลือกรายการสั่งเข้า Stock</h2>
 
       <div class="mt-5 grid gap-5 lg:grid-cols-[1fr_1fr]">
@@ -74,7 +74,7 @@
       </div>
     </div>
 
-    <div class="overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
+    <div class="app-soft-card overflow-hidden rounded-3xl border shadow-sm">
       <div class="border-b border-stone-200 px-6 py-4">
         <h2 class="text-lg font-semibold text-stone-900">รายการ forecast ที่จะสั่งเข้า Stock</h2>
       </div>
@@ -141,8 +141,8 @@
     </div>
 
     <div class="flex flex-wrap gap-3">
-      <%= form.submit "ยืนยันสั่งเข้า Stock", data: { stock_order_quantities_target: "submit" }, class: "inline-flex cursor-pointer items-center rounded-xl bg-amber-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-amber-300" %>
-      <%= link_to "กลับไปเลือก forecast ใหม่", forecasts_path(report_type: @report_type), class: "inline-flex items-center rounded-xl border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100" %>
+      <%= form.submit "ยืนยันสั่งเข้า Stock", data: { stock_order_quantities_target: "submit" }, class: "app-btn-primary inline-flex cursor-pointer items-center rounded-xl px-5 py-3 text-sm font-medium transition disabled:cursor-not-allowed disabled:bg-[#fca5a5]" %>
+      <%= link_to "กลับไปเลือก forecast ใหม่", forecasts_path(report_type: @report_type), class: "app-btn-ghost inline-flex items-center rounded-xl px-5 py-3 text-sm font-medium transition" %>
     </div>
   <% end %>
 </section>
