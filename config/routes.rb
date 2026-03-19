@@ -11,6 +11,7 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   root "home#index"
+  patch "workspace_mode", to: "workspace_modes#update", as: :workspace_mode
   resources :forecasts, only: :index do
     post :sync, on: :collection
   end
@@ -18,5 +19,6 @@ Rails.application.routes.draw do
   post "forecast-stock-orders", to: "forecast_stock_orders#create", as: :forecast_stock_orders
   resources :stock_orders, only: %i[index show]
   post "stock_orders/check_latest", to: "stock_orders#check_latest", as: :check_latest_stock_orders
+  resources :sales_interests, only: %i[new create]
   resources :incoming_stocks, only: :index
 end

@@ -10,11 +10,15 @@
   <div class="app-soft-card flex flex-col gap-6 rounded-3xl border p-8 shadow-sm">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <p class="app-eyebrow text-sm font-medium uppercase tracking-[0.2em]">Stock Workspace</p>
+        <p class="app-eyebrow text-sm font-medium uppercase tracking-[0.2em]"><%= sales_mode? ? "Sales Workspace" : "Stock Workspace" %></p>
         <h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-900">Stock</h1>
         <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
-          มุมมองนี้รวมข้อมูล stock ที่ฝ่ายจัดสรรสั่งไว้และรายการที่เริ่มไหลเป็น stock กำลังเข้าแล้วในหน้าเดียว
-          เพื่อให้เห็นเส้นทางจากความต้องการภายใน ไปสู่ pipeline ที่ฝ่ายขายใช้งานต่อได้
+          <% if sales_mode? %>
+            มุมมองนี้เน้นรายการที่เริ่มไหลเป็น stock กำลังเข้า เพื่อให้ฝ่ายขายดูรถที่จะเข้า, เช็คสถานะล่าสุด และบันทึกการติดตามของแต่ละสาขาได้ในหน้าเดียว
+          <% else %>
+            มุมมองนี้รวมข้อมูล stock ที่ฝ่ายจัดสรรสั่งไว้และรายการที่เริ่มไหลเป็น stock กำลังเข้าแล้วในหน้าเดียว
+            เพื่อให้เห็นเส้นทางจากความต้องการภายใน ไปสู่ pipeline ที่ฝ่ายขายใช้งานต่อได้
+          <% end %>
         </p>
       </div>
 
@@ -24,14 +28,14 @@
                     data: {
                       controller: "sync-feedback",
                       action: "turbo:submit-start->sync-feedback#start turbo:submit-end->sync-feedback#reset",
-                      sync_feedback_message_value: "กำลังเช็คข้อมูลล่าสุดจากบริษัทแม่และอัปเดตสถานะ stock..."
+                      sync_feedback_message_value: (sales_mode? ? "กำลังเช็คข้อมูลล่าสุดเพื่ออัปเดต incoming stock สำหรับฝ่ายขาย..." : "กำลังเช็คข้อมูลล่าสุดจากบริษัทแม่และอัปเดตสถานะ stock...")
                     } do %>
         <button type="submit"
                 data-sync-feedback-target="button"
                 data-turbo-submits-with="กำลังเช็คสถานะ..."
                 class="app-btn-secondary inline-flex cursor-pointer items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium transition disabled:cursor-wait disabled:bg-stone-500">
           <span class="inline-flex h-2.5 w-2.5 rounded-full bg-white/80"></span>
-          <span>เช็คสถานะล่าสุด</span>
+          <span><%= sales_mode? ? "เช็คสถานะล่าสุดสำหรับฝ่ายขาย" : "เช็คสถานะล่าสุด" %></span>
         </button>
         <div data-sync-feedback-target="panel" class="hidden rounded-2xl border border-[#fecdd3] bg-[#fff1f2] px-4 py-3 text-sm text-[#be123c]">
           <div class="flex items-center gap-3">
@@ -112,6 +116,9 @@
               <th class="px-5 py-3 font-medium text-right">Qty</th>
               <th class="px-5 py-3 font-medium">In Stock</th>
               <th class="px-5 py-3 font-medium">สถานะ</th>
+              <% if sales_mode? %>
+                <th class="px-5 py-3 font-medium">ฝ่ายขาย</th>
+              <% end %>
               <th class="px-5 py-3 font-medium">รายการสั่งเข้า Stock</th>
             </tr>
           </thead>
@@ -154,6 +161,22 @@
                     <span class="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-800">สั่งเข้าแล้ว</span>
                   <% end %>
                 </td>
+                <% if sales_mode? %>
+                  <td class="px-5 py-4">
+                    <% sales_label, sales_badge_classes = sales_interest_badge(item.sales_interest_summary_status) %>
+                    <div class="flex flex-col items-start gap-2">
+                      <span class="<%= sales_badge_classes %> inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"><%= sales_label %></span>
+                      <% if item.status_incoming? %>
+                        <% action_label = item.sales_interests.any? ? "เพิ่มการติดตาม" : "ติดตาม" %>
+                        <%= link_to action_label,
+                                    new_sales_interest_path(stock_plan_item_id: item.id, tab: @active_tab),
+                                    class: "inline-flex items-center rounded-xl border border-stone-300 px-3 py-2 text-xs font-medium text-stone-700 transition hover:bg-stone-100" %>
+                      <% else %>
+                        <span class="text-xs text-stone-400">เริ่มได้เมื่อสถานะเป็นกำลังเข้า</span>
+                      <% end %>
+                    </div>
+                  </td>
+                <% end %>
                 <td class="px-5 py-4">
                   <div class="flex flex-col items-start gap-2">
                     <div class="font-medium text-stone-900"><%= item.stock_plan.display_title %></div>

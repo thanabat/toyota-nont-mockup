@@ -1,6 +1,8 @@
 class ForecastsController < ApplicationController
   REPORT_TYPES = %w[daily weekly monthly].freeze
 
+  before_action :redirect_sales_mode_to_stock_workspace
+
   def index
     @current_report_type = normalized_report_type
     reset_demo_baseline_if_needed
@@ -30,6 +32,12 @@ class ForecastsController < ApplicationController
   end
 
   private
+
+  def redirect_sales_mode_to_stock_workspace
+    return unless sales_mode?
+
+    redirect_to stock_orders_path(tab: :incoming), alert: "ฝ่ายขายใช้งานผ่านหน้า Stock กำลังเข้าเป็นหลัก"
+  end
 
   def normalized_report_type
     REPORT_TYPES.include?(params[:report_type].to_s) ? params[:report_type] : "daily"

@@ -47,6 +47,7 @@ class StockOrdersControllerTest < ActionDispatch::IntegrationTest
     assert_select "a", /กำลังเข้า/
     assert_select "td", /Hilux Revo Prerunner/
     assert_select "span", /สั่งเข้าแล้ว/
+    assert_select "th", text: /ฝ่ายขาย/, count: 0
   end
 
   test "should filter stock workspace to incoming items" do
@@ -59,6 +60,7 @@ class StockOrdersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "td", /Hilux Revo Prerunner/
     assert_select "span", /กำลังเข้า/
+    assert_select "th", text: /ฝ่ายขาย/, count: 0
   end
 
   test "should check latest status and move ordered item to incoming when data completes" do
@@ -70,6 +72,21 @@ class StockOrdersControllerTest < ActionDispatch::IntegrationTest
 
     @stock_order.stock_plan_items.last.reload
     assert_predicate @stock_order.stock_plan_items.last, :status_incoming?
+  end
+
+  test "should default to incoming tab in sales mode" do
+    item = @stock_order.stock_plan_items.last
+    item.supply_forecast.update!(estimated_arrival_date: Date.current + 21.days)
+    item.update!(status: :incoming, incoming_at: Time.current)
+
+    patch workspace_mode_url, params: { mode: :sales, return_to: "/stock_orders" }
+    get stock_orders_url
+
+    assert_response :success
+    assert_select "p", /Sales Workspace/
+    assert_select "h2", /รายการที่กลายเป็น Stock กำลังเข้า/
+    assert_select "td", /Hilux Revo Prerunner/
+    assert_select "th", /ฝ่ายขาย/
   end
 
   test "should get stock order detail" do

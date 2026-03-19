@@ -96,4 +96,11 @@ class ForecastsControllerTest < ActionDispatch::IntegrationTest
     assert_select "div", /Weekly sync completed/
     assert_select "span", /Latest Sync/
   end
+
+  test "should redirect sales mode away from forecasts" do
+    patch workspace_mode_url, params: { mode: :sales, return_to: "/forecasts" }
+    get forecasts_url
+
+    assert_redirected_to stock_orders_url(tab: :incoming)
+  end
 end

@@ -2,18 +2,26 @@
 
 <section class="grid w-full gap-8 lg:grid-cols-[1.1fr_0.9fr]">
   <div class="app-soft-card rounded-3xl border p-8 shadow-sm">
-    <p class="app-eyebrow text-sm font-medium uppercase tracking-[0.2em]">Toyota Stock Prototype</p>
+    <p class="app-eyebrow text-sm font-medium uppercase tracking-[0.2em]"><%= workspace_mode_title %></p>
     <h1 class="mt-4 text-4xl font-semibold tracking-tight text-stone-900">
-      เริ่มจากการมองเห็น forecast และการเลือกนำรถเข้า stock
+      <%= sales_mode? ? "มองเห็นรถที่กำลังเข้าและเริ่มติดตามเพื่อเตรียมเสนอขาย" : "เริ่มจากการมองเห็น forecast และการเลือกนำรถเข้า stock" %>
     </h1>
     <p class="mt-4 max-w-2xl text-base leading-7 text-stone-600">
-      เวอร์ชันนี้เริ่มจากงานของฝ่ายจัดสรรก่อน โดยมีข้อมูล forecast จากบริษัทแม่และ flow การสั่งเข้า stock
-      เพื่อให้ต่อยอดไปเป็น flow รับรถ, QC, ย้ายรถ และขายต่อได้ภายหลัง
+      <% if sales_mode? %>
+        โหมดฝ่ายขายเน้นการดู incoming stock, เช็กว่ารายการไหนกำลังจะเข้า, และบันทึกความสนใจของเซลล์เพื่อใช้วางแผนล่วงหน้าก่อนรถพร้อมขายจริง
+      <% else %>
+        เวอร์ชันนี้เริ่มจากงานของฝ่ายจัดสรรก่อน โดยมีข้อมูล forecast จากบริษัทแม่และ flow การสั่งเข้า stock
+        เพื่อให้ต่อยอดไปเป็น flow รับรถ, QC, ย้ายรถ และขายต่อได้ภายหลัง
+      <% end %>
     </p>
 
     <div class="mt-8 flex flex-wrap gap-3">
-      <%= link_to "ดู Forecast", forecasts_path, class: "app-btn-primary inline-flex items-center rounded-xl px-5 py-3 text-sm font-medium transition" %>
-      <%= link_to "ดู Stock", stock_orders_path, class: "app-btn-secondary inline-flex items-center rounded-xl px-5 py-3 text-sm font-medium transition" %>
+      <% if sales_mode? %>
+        <%= link_to "ดู Stock กำลังเข้า", stock_orders_path(tab: :incoming), class: "app-btn-primary inline-flex items-center rounded-xl px-5 py-3 text-sm font-medium transition" %>
+      <% else %>
+        <%= link_to "ดู Forecast", forecasts_path, class: "app-btn-primary inline-flex items-center rounded-xl px-5 py-3 text-sm font-medium transition" %>
+        <%= link_to "ดู Stock", stock_orders_path, class: "app-btn-secondary inline-flex items-center rounded-xl px-5 py-3 text-sm font-medium transition" %>
+      <% end %>
       <span class="inline-flex items-center rounded-xl border border-stone-200 px-4 py-3 text-sm text-stone-600">
         seeded data พร้อมสำหรับ demo flow
       </span>
@@ -22,12 +30,19 @@
 
   <div class="grid gap-4">
     <div class="app-summary-dark rounded-3xl border p-6 shadow-sm">
-      <h2 class="text-lg font-semibold">Flow รอบแรก</h2>
+      <h2 class="text-lg font-semibold"><%= sales_mode? ? "Flow ฝ่ายขาย" : "Flow รอบแรก" %></h2>
       <ul class="mt-4 space-y-3 text-sm leading-6 text-stone-300">
-        <li>1. sync forecast จากบริษัทแม่</li>
-        <li>2. ฝ่ายจัดสรรเห็นรุ่น สี จำนวน และวันคาดการณ์เข้า</li>
-        <li>3. เลือก forecast ที่จะสั่งเข้า stock</li>
-        <li>4. sync รอบใหม่แล้วบางรายการกลายเป็น stock กำลังเข้า</li>
+        <% if sales_mode? %>
+          <li>1. เปิดดู stock ที่กำลังเข้า</li>
+          <li>2. เช็คสถานะล่าสุดเพื่อดูว่ามีรายการไหนขยับมาใหม่</li>
+          <li>3. ระบุว่าฝ่ายขายกำลังติดตามหรือมีลูกค้ารอ</li>
+          <li>4. ใช้ข้อมูลนี้วางแผนเสนอขายล่วงหน้า</li>
+        <% else %>
+          <li>1. sync forecast จากบริษัทแม่</li>
+          <li>2. ฝ่ายจัดสรรเห็นรุ่น สี จำนวน และวันคาดการณ์เข้า</li>
+          <li>3. เลือก forecast ที่จะสั่งเข้า stock</li>
+          <li>4. sync รอบใหม่แล้วบางรายการกลายเป็น stock กำลังเข้า</li>
+        <% end %>
       </ul>
     </div>
 

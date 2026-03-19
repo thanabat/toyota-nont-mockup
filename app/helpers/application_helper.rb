@@ -49,6 +49,33 @@ module ApplicationHelper
     [ base_classes, active ? active_classes : inactive_classes ].join(" ")
   end
 
+  def workspace_mode_label
+    sales_mode? ? "Sales Team" : "Allocation Team"
+  end
+
+  def workspace_mode_title
+    sales_mode? ? "Sales Mode" : "Allocation Mode"
+  end
+
+  def workspace_mode_description
+    if sales_mode?
+      "โหมดนี้เน้นการมองเห็น incoming stock, รถที่มีลูกค้ารอ และการติดตามรายการที่ฝ่ายขายสนใจ"
+    else
+      "โหมดนี้เน้นการเลือก forecast, สั่งเข้า stock และติดตามการไหลของข้อมูลจากบริษัทแม่"
+    end
+  end
+
+  def workspace_mode_switch_classes(mode)
+    active = current_workspace_mode == mode.to_s
+    base = "inline-flex items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition"
+
+    if active
+      "#{base} app-btn-secondary"
+    else
+      "#{base} border border-stone-200 bg-white text-stone-500 hover:bg-stone-50 hover:text-stone-900"
+    end
+  end
+
   def sidebar_icon(name)
     paths = case name
     when :home
@@ -118,6 +145,17 @@ module ApplicationHelper
     return "รอ ETA จากบริษัทแม่" if arrival_date.blank?
 
     incoming_stock_arrival_label(item)
+  end
+
+  def sales_interest_badge(status)
+    case status.to_sym
+    when :customer_waiting
+      [ "มีลูกค้ารอ", "bg-amber-100 text-amber-800" ]
+    when :watching
+      [ "ฝ่ายขายกำลังติดตาม", "bg-violet-100 text-violet-800" ]
+    else
+      [ "ยังไม่มีฝ่ายขายติดตาม", "bg-stone-100 text-stone-500" ]
+    end
   end
 
   private

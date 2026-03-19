@@ -39,9 +39,11 @@
                 <span class="app-nav-icon inline-flex h-9 w-9 items-center justify-center rounded-2xl"><%= sidebar_icon(:home) %></span>
                 <span>Overview</span>
               <% end %>
-              <%= link_to forecasts_path, class: sidebar_link_classes(forecasts_path) do %>
-                <span class="app-nav-icon inline-flex h-9 w-9 items-center justify-center rounded-2xl"><%= sidebar_icon(:forecast) %></span>
-                <span>Forecast</span>
+              <% unless sales_mode? %>
+                <%= link_to forecasts_path, class: sidebar_link_classes(forecasts_path) do %>
+                  <span class="app-nav-icon inline-flex h-9 w-9 items-center justify-center rounded-2xl"><%= sidebar_icon(:forecast) %></span>
+                  <span>Forecast</span>
+                <% end %>
               <% end %>
               <%= link_to stock_orders_path, class: sidebar_link_classes(stock_orders_path) do %>
                 <span class="app-nav-icon inline-flex h-9 w-9 items-center justify-center rounded-2xl"><%= sidebar_icon(:stock) %></span>
@@ -51,13 +53,34 @@
 
             <div class="app-soft-tint mt-8 rounded-[1.5rem] border px-5 py-4 text-sm text-stone-600">
               <p class="font-medium text-stone-900">Demo Notes</p>
-              <p class="mt-2 leading-6">กด `Sync` เพื่อจำลองข้อมูลตอบกลับจากบริษัทแม่ และดูการไหลของรายการจาก forecast ไปเป็น incoming stock</p>
+              <p class="mt-2 leading-6">
+                <% if sales_mode? %>
+                  ใช้โหมดนี้เพื่อดู incoming stock, กด `เช็คสถานะล่าสุด` แล้วให้ฝ่ายขายเริ่ม `ติดตาม` รายการที่สนใจได้
+                <% else %>
+                  กด `Sync` เพื่อจำลองข้อมูลตอบกลับจากบริษัทแม่ และดูการไหลของรายการจาก forecast ไปเป็น incoming stock
+                <% end %>
+              </p>
             </div>
 
             <div class="app-soft-card mt-auto rounded-[1.5rem] border px-5 py-4">
               <p class="text-xs font-semibold uppercase tracking-[0.24em] text-stone-400">Workspace</p>
-              <p class="mt-2 text-sm font-medium text-stone-900">Allocation Team</p>
-              <p class="mt-1 text-sm text-stone-500">ใช้ sidebar นี้เพื่อสลับมุมมองหลักของ flow</p>
+              <p class="mt-2 text-sm font-medium text-stone-900"><%= workspace_mode_label %></p>
+              <p class="mt-1 text-sm text-stone-500"><%= workspace_mode_description %></p>
+              <div class="mt-4 rounded-2xl border border-stone-200 bg-white/80 p-2">
+                <p class="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-400">View Mode</p>
+                <div class="grid grid-cols-2 gap-2">
+                  <%= button_to "Allocation",
+                                workspace_mode_path,
+                                method: :patch,
+                                params: { mode: :allocation, return_to: request.fullpath },
+                                class: workspace_mode_switch_classes(:allocation) %>
+                  <%= button_to "Sales",
+                                workspace_mode_path,
+                                method: :patch,
+                                params: { mode: :sales, return_to: request.fullpath },
+                                class: workspace_mode_switch_classes(:sales) %>
+                </div>
+              </div>
             </div>
           </div>
         </aside>

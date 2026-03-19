@@ -1,7 +1,7 @@
 class StockOrdersController < ApplicationController
   def index
-    @active_tab = params[:tab].presence_in(%w[all ordered incoming]) || "all"
-    @all_stock_items = StockPlanItem.includes(:stock_plan, :supply_forecast).sort_by do |item|
+    @active_tab = params[:tab].presence_in(%w[all ordered incoming]) || default_stock_tab
+    @all_stock_items = StockPlanItem.includes(:stock_plan, :supply_forecast, :sales_interests).sort_by do |item|
       forecast = item.supply_forecast
 
       [
@@ -57,5 +57,11 @@ class StockOrdersController < ApplicationController
     ].join(" • ")
 
     redirect_to stock_orders_path(tab: active_tab), notice: notice
+  end
+
+  private
+
+  def default_stock_tab
+    sales_mode? ? "incoming" : "all"
   end
 end

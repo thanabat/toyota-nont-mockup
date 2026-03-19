@@ -3,6 +3,7 @@ class StockPlanItem < ApplicationRecord
 
   belongs_to :stock_plan
   belongs_to :supply_forecast
+  has_many :sales_interests, dependent: :destroy
 
   validates :selected_quantity, numericality: { greater_than: 0, only_integer: true }
   validates :supply_forecast_id, uniqueness: true
@@ -26,6 +27,13 @@ class StockPlanItem < ApplicationRecord
     return unless ready_for_incoming?
 
     update!(status: :incoming, incoming_at: incoming_at || Time.current)
+  end
+
+  def sales_interest_summary_status
+    return :none if sales_interests.empty?
+    return :customer_waiting if sales_interests.any?(&:status_customer_waiting?)
+
+    :watching
   end
 
   private

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_19_173000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_19_191500) do
   create_table "forecast_sync_runs", force: :cascade do |t|
     t.datetime "completed_at"
     t.datetime "created_at", null: false
@@ -25,6 +25,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_19_173000) do
     t.integer "status", default: 0, null: false
     t.integer "trigger_mode", default: 0, null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "sales_interests", force: :cascade do |t|
+    t.string "branch_name", null: false
+    t.datetime "created_at", null: false
+    t.text "note"
+    t.string "sales_name", null: false
+    t.integer "status", default: 0, null: false
+    t.integer "stock_plan_item_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["status"], name: "index_sales_interests_on_status"
+    t.index ["stock_plan_item_id"], name: "index_sales_interests_on_stock_plan_item_id"
   end
 
   create_table "stock_plan_items", force: :cascade do |t|
@@ -89,6 +101,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_19_173000) do
     t.check_constraint "quantity_available >= 0", name: "supply_forecasts_quantity_available_non_negative"
   end
 
+  add_foreign_key "sales_interests", "stock_plan_items"
   add_foreign_key "stock_plan_items", "stock_plans"
   add_foreign_key "stock_plan_items", "supply_forecasts"
   add_foreign_key "supply_forecasts", "forecast_sync_runs"
