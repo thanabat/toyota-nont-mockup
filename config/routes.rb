@@ -17,5 +17,6 @@ Rails.application.routes.draw do
   get "forecast-stock-orders/new", to: "forecast_stock_orders#new", as: :new_forecast_stock_orders
   post "forecast-stock-orders", to: "forecast_stock_orders#create", as: :forecast_stock_orders
   resources :stock_orders, only: %i[index show]
+  post "stock_orders/check_latest", to: "stock_orders#check_latest", as: :check_latest_stock_orders
   resources :incoming_stocks, only: :index
 end

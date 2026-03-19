@@ -61,6 +61,17 @@ class StockOrdersControllerTest < ActionDispatch::IntegrationTest
     assert_select "span", /กำลังเข้า/
   end
 
+  test "should check latest status and move ordered item to incoming when data completes" do
+    assert_difference "ForecastSyncRun.count", 1 do
+      post check_latest_stock_orders_url(tab: :ordered)
+    end
+
+    assert_redirected_to stock_orders_url(tab: :ordered)
+
+    @stock_order.stock_plan_items.last.reload
+    assert_predicate @stock_order.stock_plan_items.last, :status_incoming?
+  end
+
   test "should get stock order detail" do
     get stock_order_url(@stock_order)
 

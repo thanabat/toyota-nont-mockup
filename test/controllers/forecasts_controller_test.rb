@@ -94,6 +94,6 @@ class ForecastsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "div", /Weekly sync completed/
-    assert_select "h2", /Available Forecast Feed/
+    assert_select "span", /Latest Sync/
   end
 end

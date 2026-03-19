@@ -58,20 +58,23 @@
   <div class="app-soft-card rounded-[1.75rem] border shadow-sm">
     <div class="border-b border-stone-200 bg-stone-50/70 px-6 py-5">
       <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <div>
-          <h2 class="text-lg font-semibold text-stone-900">Available Forecast Feed</h2>
-          <p class="mt-1 text-sm text-stone-500">
-            1 batch จากบริษัทแม่สามารถมีหลาย line ตาม model, color และ quantity ได้ในรอบเดียวกัน
-            และตอนนี้กำลังดูชุดข้อมูล <span class="font-medium text-stone-700"><%= @current_report_type.titleize %></span>
-          </p>
-          <% if @latest_sync_run.present? %>
-            <p class="mt-2 text-xs uppercase tracking-[0.18em] text-stone-400">
-              latest sync <%= @latest_sync_run.completed_at&.strftime("%d %b %Y %H:%M") || @latest_sync_run.started_at.strftime("%d %b %Y %H:%M") %>
-            </p>
-          <% end %>
-        </div>
+        <div class="flex flex-col gap-3 xl:min-w-[680px] xl:flex-1">
+          <div class="flex flex-wrap items-center gap-3 text-sm">
+            <span class="font-medium text-stone-700">Latest Sync</span>
+            <span class="inline-flex items-center rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium uppercase tracking-[0.16em] text-stone-500">
+              <%= @current_report_type.titleize %>
+            </span>
+            <% if @latest_sync_run.present? %>
+              <span class="inline-flex items-center rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700">
+                <%= @latest_sync_run.completed_at&.strftime("%d %b %Y %H:%M") || @latest_sync_run.started_at.strftime("%d %b %Y %H:%M") %>
+              </span>
+            <% else %>
+              <span class="inline-flex items-center rounded-full border border-dashed border-stone-300 bg-white px-3 py-1.5 text-xs font-medium text-stone-400">
+                ยังไม่มีประวัติ sync
+              </span>
+            <% end %>
+          </div>
 
-        <div class="flex flex-col gap-3 xl:min-w-[620px]">
           <%= form_with url: forecasts_path, method: :get, class: "flex flex-col gap-3 xl:flex-row xl:items-center" do |search_form| %>
             <%= hidden_field_tag :report_type, @current_report_type %>
             <div class="flex-1">

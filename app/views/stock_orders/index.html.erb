@@ -17,6 +17,29 @@
           เพื่อให้เห็นเส้นทางจากความต้องการภายใน ไปสู่ pipeline ที่ฝ่ายขายใช้งานต่อได้
         </p>
       </div>
+
+      <%= form_with url: check_latest_stock_orders_path(tab: (@active_tab == "all" ? nil : @active_tab)),
+                    method: :post,
+                    class: "flex flex-wrap items-center gap-3",
+                    data: {
+                      controller: "sync-feedback",
+                      action: "turbo:submit-start->sync-feedback#start turbo:submit-end->sync-feedback#reset",
+                      sync_feedback_message_value: "กำลังเช็คข้อมูลล่าสุดจากบริษัทแม่และอัปเดตสถานะ stock..."
+                    } do %>
+        <button type="submit"
+                data-sync-feedback-target="button"
+                data-turbo-submits-with="กำลังเช็คสถานะ..."
+                class="app-btn-secondary inline-flex cursor-pointer items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium transition disabled:cursor-wait disabled:bg-stone-500">
+          <span class="inline-flex h-2.5 w-2.5 rounded-full bg-white/80"></span>
+          <span>เช็คสถานะล่าสุด</span>
+        </button>
+        <div data-sync-feedback-target="panel" class="hidden rounded-2xl border border-[#fecdd3] bg-[#fff1f2] px-4 py-3 text-sm text-[#be123c]">
+          <div class="flex items-center gap-3">
+            <span class="inline-flex h-3 w-3 animate-pulse rounded-full bg-[#e20712]"></span>
+            <span data-sync-feedback-target="label">กำลังเช็คสถานะล่าสุด...</span>
+          </div>
+        </div>
+      <% end %>
     </div>
 
     <div class="flex flex-wrap items-center gap-3 border-t border-stone-200 pt-5">
