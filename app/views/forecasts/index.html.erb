@@ -36,40 +36,23 @@
       else
         "rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50"
       end %>
-      <%= link_to label, forecasts_path(report_type: report_type), class: classes %>
+      <%= link_to label, forecasts_path(report_type: report_type, q: @query.presence), class: classes %>
     <% end %>
   </div>
 
-  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
-    <div class="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-      <p class="text-sm text-stone-500">Forecast Batches</p>
-      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @summary[:total_batches] %></p>
+  <%= form_with url: forecasts_path, method: :get, class: "flex flex-col gap-3 rounded-3xl border border-stone-200 bg-white p-5 shadow-sm lg:flex-row lg:items-center" do |form| %>
+    <%= hidden_field_tag :report_type, @current_report_type %>
+    <div class="flex-1">
+      <%= form.label :q, "ค้นหา Model หรือ รุ่น", class: "block text-sm font-medium text-stone-700" %>
+      <%= form.search_field :q, value: @query, placeholder: "เช่น Yaris, Hilux, Premium Luxury", class: "mt-2 block w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm focus:border-stone-500 focus:outline-none" %>
     </div>
-    <div class="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-      <p class="text-sm text-stone-500">Forecast Lines</p>
-      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @summary[:total_lines] %></p>
+    <div class="flex flex-wrap gap-3 pt-6 lg:pt-0">
+      <%= form.submit "ค้นหา", class: "inline-flex cursor-pointer items-center rounded-xl bg-stone-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-stone-800" %>
+      <% if @query.present? %>
+        <%= link_to "ล้างคำค้น", forecasts_path(report_type: @current_report_type), class: "inline-flex items-center rounded-xl border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100" %>
+      <% end %>
     </div>
-    <div class="rounded-3xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
-      <p class="text-sm text-emerald-700">Available</p>
-      <p class="mt-3 text-3xl font-semibold text-emerald-900"><%= @summary[:available_lines] %></p>
-    </div>
-    <div class="rounded-3xl border border-sky-200 bg-sky-50 p-6 shadow-sm">
-      <p class="text-sm text-sky-700">Selected</p>
-      <p class="mt-3 text-3xl font-semibold text-sky-900"><%= @summary[:selected_lines] %></p>
-    </div>
-    <div class="rounded-3xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
-      <p class="text-sm text-amber-700">Changed After Selection</p>
-      <p class="mt-3 text-3xl font-semibold text-amber-900"><%= @summary[:changed_lines] %></p>
-    </div>
-    <div class="rounded-3xl border border-violet-200 bg-violet-50 p-6 shadow-sm">
-      <p class="text-sm text-violet-700">New In Latest Sync</p>
-      <p class="mt-3 text-3xl font-semibold text-violet-900"><%= @summary[:new_lines] %></p>
-    </div>
-    <div class="rounded-3xl border border-orange-200 bg-orange-50 p-6 shadow-sm">
-      <p class="text-sm text-orange-700">Updated In Latest Sync</p>
-      <p class="mt-3 text-3xl font-semibold text-orange-900"><%= @summary[:updated_lines] %></p>
-    </div>
-  </div>
+  <% end %>
 
   <%= form_with url: new_forecast_stock_orders_path, method: :get, scope: nil, data: { controller: "bulk-select" }, class: "overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm" do %>
     <%= hidden_field_tag :report_type, @current_report_type %>
@@ -91,8 +74,14 @@
       <% end %>
     </div>
 
-    <div class="divide-y divide-stone-200">
-      <% @forecast_batches.each do |batch_key, forecasts| %>
+    <% if @forecast_batches.blank? %>
+      <div class="px-6 py-10 text-center">
+        <p class="text-base font-medium text-stone-900">ไม่พบ forecast ที่ตรงกับคำค้น</p>
+        <p class="mt-2 text-sm text-stone-500">ลองค้นหาด้วยชื่อรุ่น, model code หรือ grade ใหม่อีกครั้ง</p>
+      </div>
+    <% else %>
+      <div class="divide-y divide-stone-200">
+        <% @forecast_batches.each do |batch_key, forecasts| %>
         <% first = forecasts.first %>
         <div class="px-6 py-4">
           <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
@@ -124,16 +113,14 @@
                   <th class="px-5 py-3 font-medium">
                     <input type="checkbox" data-bulk-select-target="master" data-action="bulk-select#toggleAll" class="h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500">
                   </th>
-                  <th class="px-5 py-3 font-medium">Line</th>
-                  <th class="px-5 py-3 font-medium">Line Key</th>
                   <th class="px-5 py-3 font-medium">Model</th>
                   <th class="px-5 py-3 font-medium">Color</th>
                   <th class="px-5 py-3 font-medium text-right">Qty</th>
                   <th class="px-5 py-3 font-medium">Prod. Date</th>
                   <th class="px-5 py-3 font-medium">ETA</th>
                   <th class="px-5 py-3 font-medium">Latest Sync</th>
-                  <th class="px-5 py-3 font-medium">Status</th>
                   <th class="px-5 py-3 font-medium">สถานะการสั่ง</th>
+                  <th class="px-5 py-3 font-medium">Ref Key</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-stone-100 bg-white">
@@ -157,8 +144,6 @@
                              data-action="bulk-select#toggle"
                              class="h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100">
                     </td>
-                    <td class="whitespace-nowrap px-5 py-4 font-semibold text-stone-700">#<%= forecast.source_line_no %></td>
-                    <td class="whitespace-nowrap px-5 py-4 font-mono text-xs text-stone-500"><%= forecast.source_key %></td>
                     <td class="px-5 py-4">
                       <div class="flex flex-wrap items-center gap-2">
                         <span class="font-medium text-stone-900"><%= forecast.model_label || forecast.model_code %></span>
@@ -171,8 +156,9 @@
                       <div class="text-stone-500"><%= [forecast.model_code, forecast.grade].compact.join(" • ") %></div>
                     </td>
                     <td class="px-5 py-4">
-                      <div class="font-medium text-stone-900"><%= forecast.color_name || "-" %></div>
-                      <div class="text-stone-500"><%= forecast.color_code.presence || "-" %></div>
+                      <div class="flex items-center justify-center">
+                        <%= forecast_color_swatch(forecast) %>
+                      </div>
                     </td>
                     <td class="whitespace-nowrap px-5 py-4 text-right font-semibold text-stone-900"><%= forecast.quantity_available || "-" %></td>
                     <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= forecast.estimated_production_date&.strftime("%d %b %Y") || "-" %></td>
@@ -190,17 +176,19 @@
                       <span class="<%= sync_badge_classes %> rounded-full px-3 py-1 text-xs font-medium"><%= sync_badge_label %></span>
                     </td>
                     <td class="whitespace-nowrap px-5 py-4">
-                      <% badge_classes = case forecast.status.to_sym
-                        when :available then "bg-emerald-100 text-emerald-800"
-                        when :selected then "bg-sky-100 text-sky-800"
-                        when :changed_after_selection then "bg-amber-100 text-amber-800"
-                        else "bg-stone-200 text-stone-700"
-                      end %>
-                      <span class="<%= badge_classes %> rounded-full px-3 py-1 text-xs font-medium"><%= forecast.status.humanize %></span>
-                    </td>
-                    <td class="whitespace-nowrap px-5 py-4">
                       <% if forecast.stock_plan_item.present? %>
-                        <%= link_to "อยู่ใน #{forecast.stock_plan_item.stock_plan.display_title}", stock_order_path(forecast.stock_plan_item.stock_plan), class: "inline-flex items-center rounded-xl border border-sky-300 px-3 py-2 text-xs font-medium text-sky-700 transition hover:bg-sky-50" %>
+                        <% action_label = forecast.status_changed_after_selection? ? "ข้อมูลเปลี่ยนหลังสั่ง" : "สั่งแล้ว" %>
+                        <% badge_classes = forecast.status_changed_after_selection? ? "bg-amber-100 text-amber-800" : "bg-sky-100 text-sky-800" %>
+                        <div class="flex flex-col items-start gap-2">
+                          <span class="<%= badge_classes %> inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"><%= action_label %></span>
+                          <%= link_to stock_order_path(forecast.stock_plan_item.stock_plan), class: "inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-medium text-stone-700 shadow-sm transition hover:border-stone-400 hover:bg-stone-50 hover:text-stone-900" do %>
+                            <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+                              <path fill-rule="evenodd" d="M2 5.75A2.75 2.75 0 0 1 4.75 3h10.5A2.75 2.75 0 0 1 18 5.75v8.5A2.75 2.75 0 0 1 15.25 17H4.75A2.75 2.75 0 0 1 2 14.25v-8.5Zm2.75-1.25c-.69 0-1.25.56-1.25 1.25v8.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-8.5c0-.69-.56-1.25-1.25-1.25H4.75Z" clip-rule="evenodd" />
+                              <path d="M6.5 9.25a.75.75 0 0 1 .75-.75h5.19l-1.72-1.72a.75.75 0 1 1 1.06-1.06l3 3a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 0 1-1.06-1.06l1.72-1.72H7.25a.75.75 0 0 1-.75-.75Z" />
+                            </svg>
+                            <span>ดูรายการ</span>
+                          <% end %>
+                        </div>
                       <% elsif forecast.quantity_available.blank? %>
                         <span class="inline-flex items-center rounded-xl border border-stone-200 px-3 py-2 text-xs font-medium text-stone-400">
                           รอข้อมูล Qty
@@ -211,13 +199,15 @@
                         </span>
                       <% end %>
                     </td>
+                    <td class="whitespace-nowrap px-5 py-4 font-mono text-xs text-stone-500"><%= forecast.source_key %></td>
                   </tr>
                 <% end %>
               </tbody>
             </table>
           </div>
         </div>
-      <% end %>
-    </div>
+        <% end %>
+      </div>
+    <% end %>
   <% end %>
 </section>

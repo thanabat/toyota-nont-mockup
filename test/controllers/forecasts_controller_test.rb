@@ -69,6 +69,22 @@ class ForecastsControllerTest < ActionDispatch::IntegrationTest
     assert_select "td", text: /FC-TEST-001-L1/, count: 0
   end
 
+  test "should search forecasts by model name within current tab" do
+    get forecasts_url(report_type: "weekly", q: "Hilux")
+
+    assert_response :success
+    assert_select "input[name=q][value='Hilux']"
+    assert_select "td", /FC-WEEKLY-001-L1/
+    assert_select "td", text: /FC-TEST-001-L1/, count: 0
+  end
+
+  test "should show empty state when search has no result" do
+    get forecasts_url(report_type: "weekly", q: "Camry")
+
+    assert_response :success
+    assert_select "p", /ไม่พบ forecast ที่ตรงกับคำค้น/
+  end
+
   test "should run manual sync for selected tab" do
     assert_difference "ForecastSyncRun.count", 1 do
       post sync_forecasts_url(report_type: "weekly")
@@ -79,6 +95,6 @@ class ForecastsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "div", /Weekly sync completed/
-    assert_select "p", /New In Latest Sync/
+    assert_select "h2", /Available Forecast Feed/
   end
 end

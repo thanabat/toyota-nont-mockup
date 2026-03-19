@@ -4,18 +4,12 @@ class ForecastsController < ApplicationController
   def index
     @current_report_type = normalized_report_type
     reset_demo_baseline_if_needed
+    @query = params[:q].to_s.strip
     @latest_sync_run = ForecastSyncRun.status_completed.where(source_report_type: @current_report_type).order(started_at: :desc).first
-    @forecasts = SupplyForecast.active_feed.includes(stock_plan_item: :stock_plan).where(source_report_type: @current_report_type).order(:source_batch_key, :source_line_no)
+    @forecasts = SupplyForecast.active_feed.includes(stock_plan_item: :stock_plan).where(source_report_type: @current_report_type)
+    @forecasts = apply_search(@forecasts)
+    @forecasts = @forecasts.order(:source_batch_key, :source_line_no)
     @forecast_batches = @forecasts.group_by(&:source_batch_key)
-    @summary = {
-      total_lines: @forecasts.count,
-      total_batches: @forecast_batches.count,
-      available_lines: @forecasts.status_available.count,
-      selected_lines: @forecasts.status_selected.count,
-      changed_lines: @forecasts.status_changed_after_selection.count,
-      new_lines: @latest_sync_run.present? ? @forecasts.where(forecast_sync_run: @latest_sync_run).last_sync_change_kind_inserted.count : 0,
-      updated_lines: @latest_sync_run.present? ? @forecasts.where(forecast_sync_run: @latest_sync_run).last_sync_change_kind_updated.count : 0
-    }
   end
 
   def sync
@@ -49,5 +43,15 @@ class ForecastsController < ApplicationController
 
   def preserve_synced_view_once?
     session.delete(:preserve_synced_forecasts_once) == @current_report_type
+  end
+
+  def apply_search(scope)
+    return scope if @query.blank?
+
+    term = "%#{ActiveRecord::Base.sanitize_sql_like(@query.downcase)}%"
+    scope.where(
+      "LOWER(COALESCE(model_label, '')) LIKE :term OR LOWER(COALESCE(model_code, '')) LIKE :term OR LOWER(COALESCE(grade, '')) LIKE :term",
+      term:
+    )
   end
 end
