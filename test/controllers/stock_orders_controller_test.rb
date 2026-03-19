@@ -51,5 +51,6 @@ class StockOrdersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", /สั่งเข้า Stock Hilux รอบด่วน/
     assert_select "td", /FC-WEEKLY-TEST-L1/
+    assert_select "span", /สั่งแล้ว/
   end
 end

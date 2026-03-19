@@ -46,4 +46,38 @@ class StockPlanItemTest < ActiveSupport::TestCase
     assert_not item.valid?
     assert_includes item.errors[:base], "forecast quantity is not available yet"
   end
+
+  test "item starts as ordered when forecast is still incomplete" do
+    item = StockPlanItem.create!(stock_plan: @plan, supply_forecast: @forecast, selected_quantity: 1)
+
+    assert_predicate item, :status_ordered?
+    assert_nil item.incoming_at
+  end
+
+  test "item starts as incoming when forecast has enough data" do
+    @forecast.update!(
+      estimated_production_date: Date.current + 10.days,
+      estimated_arrival_date: Date.current + 20.days
+    )
+
+    item = StockPlanItem.create!(stock_plan: @plan, supply_forecast: @forecast, selected_quantity: 1)
+
+    assert_predicate item, :status_incoming?
+    assert_not_nil item.incoming_at
+  end
+
+  test "item promotes to incoming when forecast becomes complete later" do
+    item = StockPlanItem.create!(stock_plan: @plan, supply_forecast: @forecast, selected_quantity: 1)
+
+    @forecast.update!(
+      estimated_production_date: Date.current + 10.days,
+      estimated_arrival_date: Date.current + 20.days
+    )
+
+    item.sync_with_forecast!
+    item.reload
+
+    assert_predicate item, :status_incoming?
+    assert_not_nil item.incoming_at
+  end
 end

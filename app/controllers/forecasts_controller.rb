@@ -22,7 +22,8 @@ class ForecastsController < ApplicationController
       "#{report_type.titleize} sync completed",
       "#{result.inserted} new",
       "#{result.updated} updated",
-      "#{result.archived} archived"
+      "#{result.archived} archived",
+      "#{result.promoted_to_incoming} moved to incoming"
     ].join(" • ")
 
     redirect_to forecasts_path(report_type: report_type), notice: notice

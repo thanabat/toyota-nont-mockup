@@ -19,7 +19,7 @@ class ForecastManualSyncService
     ]
   }.freeze
 
-  Result = Struct.new(:sync_run, :inserted, :updated, :archived, keyword_init: true)
+  Result = Struct.new(:sync_run, :inserted, :updated, :archived, :promoted_to_incoming, keyword_init: true)
 
   def initialize(report_type:)
     @report_type = report_type.to_s
@@ -29,7 +29,7 @@ class ForecastManualSyncService
     raise ArgumentError, "unsupported report type" unless REPORT_TYPES.include?(@report_type)
 
     forecasts = SupplyForecast.active_feed.where(source_report_type: @report_type).order(:source_batch_key, :source_line_no)
-    return Result.new(sync_run: nil, inserted: 0, updated: 0, archived: 0) if forecasts.empty?
+    return Result.new(sync_run: nil, inserted: 0, updated: 0, archived: 0, promoted_to_incoming: 0) if forecasts.empty?
 
     started_at = Time.current
     sync_sequence = next_sequence
@@ -44,6 +44,7 @@ class ForecastManualSyncService
     inserted = 0
     updated = 0
     archived = 0
+    promoted_to_incoming = 0
     batch_key = batch_key_for(sync_sequence)
     incoming_rows = build_incoming_rows(forecasts, batch_key, sync_sequence)
     incoming_keys = incoming_rows.map { |row| row[:source_key] }
@@ -60,8 +61,10 @@ class ForecastManualSyncService
         forecast = SupplyForecast.find_by(source_key: payload[:source_key])
 
         if forecast.present?
+          was_incoming = forecast.stock_plan_item&.status_incoming?
           forecast.apply_sync!(payload, forecast_sync_run: sync_run)
           updated += 1
+          promoted_to_incoming += 1 if !was_incoming && forecast.stock_plan_item&.reload&.status_incoming?
         else
           SupplyForecast.create!(
             payload.merge(
@@ -94,7 +97,7 @@ class ForecastManualSyncService
       )
     end
 
-    Result.new(sync_run: sync_run, inserted: inserted, updated: updated, archived: archived)
+    Result.new(sync_run: sync_run, inserted: inserted, updated: updated, archived: archived, promoted_to_incoming: promoted_to_incoming)
   rescue StandardError => error
     sync_run&.update!(
       completed_at: Time.current,
@@ -180,7 +183,7 @@ class ForecastManualSyncService
     when "weekly"
       payload[:quantity_available] = [base_quantity + quantity_delta, 1].max
       payload[:estimated_production_date] = base_production_date + production_shift.days
-      payload[:estimated_arrival_date] = nil
+      payload[:estimated_arrival_date] = existing_forecast&.stock_plan_item.present? ? base_arrival_date + arrival_shift.days : nil
     when "monthly"
       payload[:quantity_available] = [base_quantity + quantity_delta, 1].max
       payload[:estimated_production_date] = base_production_date + production_shift.days

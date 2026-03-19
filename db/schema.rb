@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_19_163000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_19_173000) do
   create_table "forecast_sync_runs", force: :cascade do |t|
     t.datetime "completed_at"
     t.datetime "created_at", null: false
@@ -29,11 +29,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_19_163000) do
 
   create_table "stock_plan_items", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.datetime "incoming_at"
     t.text "note"
     t.integer "selected_quantity", default: 1, null: false
+    t.integer "status", default: 0, null: false
     t.integer "stock_plan_id", null: false
     t.integer "supply_forecast_id", null: false
     t.datetime "updated_at", null: false
+    t.index ["status"], name: "index_stock_plan_items_on_status"
     t.index ["stock_plan_id"], name: "index_stock_plan_items_on_stock_plan_id"
     t.index ["supply_forecast_id"], name: "index_stock_plan_items_on_supply_forecast_id", unique: true
     t.check_constraint "selected_quantity > 0", name: "stock_plan_items_selected_quantity_positive"

@@ -87,4 +87,40 @@ class ForecastManualSyncServiceTest < ActiveSupport::TestCase
     assert_equal result.sync_run, @kept_forecast.forecast_sync_run
     assert_equal "FC-DAILY-#{Date.current.strftime('%Y%m%d')}-002", @kept_forecast.source_batch_key
   end
+
+  test "manual sync promotes ordered weekly item to incoming when eta arrives" do
+    weekly_sync_run = ForecastSyncRun.create!(
+      started_at: 2.hours.ago,
+      trigger_mode: :manual,
+      source_report_type: :weekly,
+      status: :completed
+    )
+
+    weekly_forecast = SupplyForecast.create!(
+      forecast_sync_run: weekly_sync_run,
+      source_key: "FC-WEEKLY-LEGACY-L1",
+      source_batch_key: "FC-WEEKLY-LEGACY",
+      source_line_no: 1,
+      source_report_type: :weekly,
+      model_code: "FORTUNER",
+      model_label: "Fortuner Legender",
+      color_name: "Platinum White Pearl",
+      quantity_available: 2,
+      estimated_production_date: Date.current + 14.days,
+      estimated_arrival_date: nil,
+      last_synced_at: Time.current
+    )
+
+    plan = StockPlan.create!(plan_no: "SP-SYNC-001", requested_by: "allocation.team")
+    item = StockPlanItem.create!(stock_plan: plan, supply_forecast: weekly_forecast, selected_quantity: 1)
+
+    result = ForecastManualSyncService.new(report_type: :weekly).call
+
+    item.reload
+    weekly_forecast.reload
+
+    assert_predicate item, :status_incoming?
+    assert_not_nil weekly_forecast.estimated_arrival_date
+    assert_operator result.promoted_to_incoming, :>=, 1
+  end
 end

@@ -14,6 +14,7 @@
     <div class="mt-8 flex flex-wrap gap-3">
       <%= link_to "ดู Forecast", forecasts_path, class: "inline-flex items-center rounded-xl bg-amber-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-amber-700" %>
       <%= link_to "ดูรายการสั่งเข้า Stock", stock_orders_path, class: "inline-flex items-center rounded-xl border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100" %>
+      <%= link_to "ดู Stock กำลังเข้า", incoming_stocks_path, class: "inline-flex items-center rounded-xl border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100" %>
       <span class="inline-flex items-center rounded-xl border border-stone-200 px-4 py-3 text-sm text-stone-600">
         seeded data พร้อมสำหรับ demo flow
       </span>
@@ -27,6 +28,7 @@
         <li>1. sync forecast จากบริษัทแม่</li>
         <li>2. ฝ่ายจัดสรรเห็นรุ่น สี จำนวน และวันคาดการณ์เข้า</li>
         <li>3. เลือก forecast ที่จะสั่งเข้า stock</li>
+        <li>4. sync รอบใหม่แล้วบางรายการกลายเป็น stock กำลังเข้า</li>
       </ul>
     </div>
 

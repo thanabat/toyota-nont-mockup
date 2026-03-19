@@ -15,4 +15,12 @@ class StockPlan < ApplicationRecord
   def total_selected_quantity
     stock_plan_items.sum(&:selected_quantity)
   end
+
+  def incoming_items_count
+    stock_plan_items.count(&:status_incoming?)
+  end
+
+  def ordered_items_count
+    stock_plan_items.count(&:status_ordered?)
+  end
 end

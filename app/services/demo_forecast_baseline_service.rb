@@ -75,7 +75,7 @@ class DemoForecastBaselineService
         color_name: changed_forecast.color_name,
         quantity_available: changed_forecast.quantity_available + 1,
         estimated_production_date: changed_forecast.estimated_production_date + 2.days,
-        estimated_arrival_date: changed_forecast.estimated_arrival_date,
+        estimated_arrival_date: Date.new(2026, 4, 8),
         source_generated_on: Date.new(2026, 3, 20)
       },
       forecast_sync_run: auto_update_run

@@ -1,0 +1,90 @@
+<% content_for :title, "Stock กำลังเข้า" %>
+
+<section class="space-y-8">
+  <div class="flex flex-col gap-4 rounded-3xl border border-stone-200 bg-white p-8 shadow-sm lg:flex-row lg:items-end lg:justify-between">
+    <div>
+      <p class="text-sm font-medium uppercase tracking-[0.2em] text-amber-700">Sales Preview</p>
+      <h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-900">Stock กำลังเข้า</h1>
+      <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
+        มุมมองนี้รวมรายการที่ฝ่ายจัดสรรสั่งเข้า stock แล้ว และบริษัทแม่ส่งข้อมูลกลับมาครบพอจนมองเป็น pipeline stock ได้
+        ฝ่ายขายสามารถใช้ดูรถที่กำลังเข้าเพื่อวางแผนเสนอขายล่วงหน้าได้
+      </p>
+    </div>
+
+    <div class="flex flex-wrap gap-3">
+      <%= link_to "กลับไป Forecast", forecasts_path, class: "inline-flex items-center rounded-xl bg-stone-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-stone-800" %>
+      <%= link_to "ดูรายการสั่งเข้า Stock", stock_orders_path, class: "inline-flex items-center rounded-xl border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100" %>
+    </div>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-3">
+    <div class="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
+      <p class="text-sm text-stone-500">จำนวนรายการที่กำลังเข้า</p>
+      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @incoming_items.size %></p>
+    </div>
+    <div class="rounded-3xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
+      <p class="text-sm text-emerald-700">จำนวนรถรวม</p>
+      <p class="mt-3 text-3xl font-semibold text-emerald-900"><%= @incoming_items.sum(&:selected_quantity) %></p>
+    </div>
+    <div class="rounded-3xl border border-sky-200 bg-sky-50 p-6 shadow-sm">
+      <p class="text-sm text-sky-700">มี ETA แล้ว</p>
+      <p class="mt-3 text-3xl font-semibold text-sky-900"><%= @incoming_items.count { |item| item.supply_forecast.estimated_arrival_date.present? } %></p>
+    </div>
+  </div>
+
+  <div class="overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
+    <div class="border-b border-stone-200 px-6 py-4">
+      <h2 class="text-lg font-semibold text-stone-900">รายการ Incoming Stock</h2>
+    </div>
+
+    <% if @incoming_items.blank? %>
+      <div class="px-6 py-10 text-center">
+        <p class="text-base font-medium text-stone-900">ยังไม่มี stock ที่กำลังเข้า</p>
+        <p class="mt-2 text-sm text-stone-500">ลองสั่งเข้า stock จาก forecast ก่อน แล้วกด sync เพื่อจำลองข้อมูลตอบกลับจากบริษัทแม่</p>
+      </div>
+    <% else %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-stone-200 text-sm">
+          <thead class="bg-stone-50 text-left text-stone-500">
+            <tr>
+              <th class="px-5 py-3 font-medium">Model</th>
+              <th class="px-5 py-3 font-medium">Color</th>
+              <th class="px-5 py-3 font-medium text-right">Qty ที่สั่ง</th>
+              <th class="px-5 py-3 font-medium">Prod. Date</th>
+              <th class="px-5 py-3 font-medium">ETA</th>
+              <th class="px-5 py-3 font-medium">รายการสั่งเข้า Stock</th>
+              <th class="px-5 py-3 font-medium">Incoming ตั้งแต่</th>
+              <th class="px-5 py-3 font-medium">Ref Key</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-stone-100 bg-white">
+            <% @incoming_items.each do |item| %>
+              <% forecast = item.supply_forecast %>
+              <tr class="hover:bg-stone-50/80">
+                <td class="px-5 py-4">
+                  <div class="font-medium text-stone-900"><%= forecast.model_label || forecast.model_code %></div>
+                  <div class="text-stone-500"><%= [forecast.model_code, forecast.grade].compact.join(" • ").presence || "-" %></div>
+                </td>
+                <td class="px-5 py-4">
+                  <div class="font-medium text-stone-900"><%= forecast.color_name || "-" %></div>
+                  <div class="text-stone-500"><%= forecast.color_code.presence || "-" %></div>
+                </td>
+                <td class="whitespace-nowrap px-5 py-4 text-right font-semibold text-stone-900"><%= item.selected_quantity %></td>
+                <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= forecast.estimated_production_date&.strftime("%d %b %Y") || "-" %></td>
+                <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= forecast.estimated_arrival_date&.strftime("%d %b %Y") || "-" %></td>
+                <td class="px-5 py-4">
+                  <div class="flex flex-col items-start gap-2">
+                    <span class="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-800">กำลังเข้า</span>
+                    <%= link_to item.stock_plan.display_title, stock_order_path(item.stock_plan), class: "inline-flex items-center rounded-xl border border-stone-300 px-3 py-2 text-xs font-medium text-stone-700 transition hover:bg-stone-100" %>
+                  </div>
+                </td>
+                <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= (item.incoming_at || item.created_at).strftime("%d %b %Y %H:%M") %></td>
+                <td class="whitespace-nowrap px-5 py-4 font-mono text-xs text-stone-500"><%= forecast.source_key %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+  </div>
+</section>

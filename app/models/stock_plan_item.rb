@@ -1,4 +1,6 @@
 class StockPlanItem < ApplicationRecord
+  enum :status, { ordered: 0, incoming: 1, received: 2 }, prefix: true
+
   belongs_to :stock_plan
   belongs_to :supply_forecast
 
@@ -6,9 +8,32 @@ class StockPlanItem < ApplicationRecord
   validates :supply_forecast_id, uniqueness: true
   validate :selected_quantity_must_fit_forecast
 
-  after_commit :refresh_forecast_selection_state, on: %i[create update destroy]
+  before_validation :set_initial_status, on: :create
+  after_commit :refresh_forecast_selection_state, on: %i[create destroy]
+
+  scope :visible_to_sales, -> { where(status: statuses[:incoming]) }
+
+  def ready_for_incoming?
+    supply_forecast.present? &&
+      supply_forecast.quantity_available.present? &&
+      supply_forecast.estimated_production_date.present? &&
+      supply_forecast.estimated_arrival_date.present?
+  end
+
+  def sync_with_forecast!
+    return unless persisted?
+    return if status_incoming? || status_received?
+    return unless ready_for_incoming?
+
+    update!(status: :incoming, incoming_at: incoming_at || Time.current)
+  end
 
   private
+
+  def set_initial_status
+    self.status = ready_for_incoming? ? :incoming : :ordered
+    self.incoming_at ||= Time.current if status_incoming?
+  end
 
   def selected_quantity_must_fit_forecast
     return if supply_forecast.blank? || selected_quantity.blank?

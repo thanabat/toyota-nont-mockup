@@ -48,6 +48,7 @@ class SupplyForecast < ApplicationRecord
     end
 
     save!
+    stock_plan_item&.sync_with_forecast!
   end
 
   def archive_from_sync!(forecast_sync_run:)
