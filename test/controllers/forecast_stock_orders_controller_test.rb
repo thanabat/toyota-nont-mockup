@@ -55,7 +55,7 @@ class ForecastStockOrdersControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should get bulk stock order selection page" do
-    get new_forecast_stock_orders_url(forecast_ids: [@forecast_one.id, @forecast_two.id], report_type: :weekly)
+    get new_forecast_stock_orders_url(forecast_ids: [ @forecast_one.id, @forecast_two.id ], report_type: :weekly)
 
     assert_response :success
     assert_select "h1", /สั่งเข้า Stock หลายรายการ/
@@ -70,7 +70,7 @@ class ForecastStockOrdersControllerTest < ActionDispatch::IntegrationTest
         stock_order_batch: {
           stock_order_id: @existing_stock_order.id,
           report_type: "weekly",
-          forecast_ids: [@forecast_one.id, @forecast_two.id],
+          forecast_ids: [ @forecast_one.id, @forecast_two.id ],
           items: {
             @forecast_one.id.to_s => { selected_quantity: 2, note: "สำหรับโชว์รูมปากเกร็ด" },
             @forecast_two.id.to_s => { selected_quantity: 1, note: "สำหรับสาขาบางบัวทอง" }
@@ -94,7 +94,7 @@ class ForecastStockOrdersControllerTest < ActionDispatch::IntegrationTest
             stock_order_id: "new",
             new_stock_order_title: "สั่งเข้า Stock SUV รอบพิเศษ",
             report_type: "weekly",
-            forecast_ids: [@forecast_one.id, @forecast_two.id],
+            forecast_ids: [ @forecast_one.id, @forecast_two.id ],
             items: {
               @forecast_one.id.to_s => { selected_quantity: 1, note: "สำหรับลูกค้า fleet" },
               @forecast_two.id.to_s => { selected_quantity: 1, note: "สำหรับงานออกบูธ" }
@@ -114,7 +114,7 @@ class ForecastStockOrdersControllerTest < ActionDispatch::IntegrationTest
         stock_order_batch: {
           stock_order_id: @existing_stock_order.id,
           report_type: "weekly",
-          forecast_ids: [@forecast_one.id, @forecast_two.id],
+          forecast_ids: [ @forecast_one.id, @forecast_two.id ],
           items: {
             @forecast_one.id.to_s => { selected_quantity: 5, note: "เกินจำนวน" },
             @forecast_two.id.to_s => { selected_quantity: 1, note: "ยังถูก" }

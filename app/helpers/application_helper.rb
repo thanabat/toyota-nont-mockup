@@ -22,7 +22,7 @@ module ApplicationHelper
   }.freeze
 
   def forecast_color_swatch(forecast)
-    label = [forecast.color_name.presence, forecast.color_code.presence].compact.join(" • ").presence || "ไม่ระบุสี"
+    label = [ forecast.color_name.presence, forecast.color_code.presence ].compact.join(" • ").presence || "ไม่ระบุสี"
     style = forecast_color_style_for(forecast)
 
     content_tag(

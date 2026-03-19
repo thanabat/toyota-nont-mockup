@@ -120,7 +120,7 @@ class ForecastManualSyncService
       build_new_row(template, batch_key, sync_sequence, kept_rows.size + index + 1)
     end
 
-    (kept_rows + fresh_rows).sort_by { |row| [row[:estimated_arrival_date] || Date.current, row[:model_label].to_s] }
+    (kept_rows + fresh_rows).sort_by { |row| [ row[:estimated_arrival_date] || Date.current, row[:model_label].to_s ] }
   end
 
   def synced_attributes_for(forecast, index, batch_key, sync_sequence)
@@ -181,11 +181,11 @@ class ForecastManualSyncService
       payload[:estimated_production_date] = nil
       payload[:estimated_arrival_date] = nil
     when "weekly"
-      payload[:quantity_available] = [base_quantity + quantity_delta, 1].max
+      payload[:quantity_available] = [ base_quantity + quantity_delta, 1 ].max
       payload[:estimated_production_date] = base_production_date + production_shift.days
       payload[:estimated_arrival_date] = existing_forecast&.stock_plan_item.present? ? base_arrival_date + arrival_shift.days : nil
     when "monthly"
-      payload[:quantity_available] = [base_quantity + quantity_delta, 1].max
+      payload[:quantity_available] = [ base_quantity + quantity_delta, 1 ].max
       payload[:estimated_production_date] = base_production_date + production_shift.days
       payload[:estimated_arrival_date] = base_arrival_date + arrival_shift.days
     end
@@ -198,7 +198,7 @@ class ForecastManualSyncService
   end
 
   def next_sequence
-    [latest_sync_run_sequence, latest_batch_sequence].max + 1
+    [ latest_sync_run_sequence, latest_batch_sequence ].max + 1
   end
 
   def latest_sync_run_sequence
