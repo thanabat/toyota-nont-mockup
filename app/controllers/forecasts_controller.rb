@@ -5,7 +5,7 @@ class ForecastsController < ApplicationController
     @current_report_type = normalized_report_type
     reset_demo_baseline_if_needed
     @latest_sync_run = ForecastSyncRun.status_completed.where(source_report_type: @current_report_type).order(started_at: :desc).first
-    @forecasts = SupplyForecast.active_feed.where(source_report_type: @current_report_type).order(:source_batch_key, :source_line_no)
+    @forecasts = SupplyForecast.active_feed.includes(stock_plan_item: :stock_plan).where(source_report_type: @current_report_type).order(:source_batch_key, :source_line_no)
     @forecast_batches = @forecasts.group_by(&:source_batch_key)
     @summary = {
       total_lines: @forecasts.count,

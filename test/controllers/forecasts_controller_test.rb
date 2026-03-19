@@ -48,11 +48,15 @@ class ForecastsControllerTest < ActionDispatch::IntegrationTest
     get forecasts_url
 
     assert_response :success
-    assert_select "h1", /Forecast Dashboard/
+    assert_select "h1", /Forecast สำหรับสั่งเข้า Stock/
     assert_select "a", /Daily/
+    assert_select "a", /ดูรายการสั่งเข้า Stock/
+    assert_select "button", /สั่งเข้า Stock จากรายการที่เลือก/
+    assert_select "span", /เลือกแล้ว 0 รายการ/
     assert_select "p", /FC-TEST-001/
     assert_select "td", /FC-TEST-001-L1/
     assert_select "td", /Yaris Ativ Sport Premium/
+    assert_select "input[type=checkbox][name='forecast_ids\\[\\]']"
     assert_select "td", text: /FC-WEEKLY-001-L1/, count: 0
   end
 

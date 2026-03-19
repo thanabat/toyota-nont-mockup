@@ -7,4 +7,12 @@ class StockPlan < ApplicationRecord
 
   validates :plan_no, :requested_by, presence: true
   validates :plan_no, uniqueness: true
+
+  def display_title
+    title.presence || plan_no
+  end
+
+  def total_selected_quantity
+    stock_plan_items.sum(&:selected_quantity)
+  end
 end

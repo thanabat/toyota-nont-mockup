@@ -5,6 +5,7 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     get root_url
 
     assert_response :success
-    assert_select "a", /Forecast Dashboard/
+    assert_select "a", /ดู Forecast/
+    assert_select "a", /ดูรายการสั่งเข้า Stock/
   end
 end

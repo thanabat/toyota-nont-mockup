@@ -14,4 +14,7 @@ Rails.application.routes.draw do
   resources :forecasts, only: :index do
     post :sync, on: :collection
   end
+  get "forecast-stock-orders/new", to: "forecast_stock_orders#new", as: :new_forecast_stock_orders
+  post "forecast-stock-orders", to: "forecast_stock_orders#create", as: :forecast_stock_orders
+  resources :stock_orders, only: %i[index show]
 end

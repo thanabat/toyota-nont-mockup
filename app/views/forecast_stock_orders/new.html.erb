@@ -1,0 +1,148 @@
+<% content_for :title, "สั่งเข้า Stock" %>
+
+<section class="space-y-8">
+  <div class="flex flex-col gap-4 rounded-3xl border border-stone-200 bg-white p-8 shadow-sm lg:flex-row lg:items-end lg:justify-between">
+    <div>
+      <p class="text-sm font-medium uppercase tracking-[0.2em] text-amber-700">เลือก Forecast เข้า Stock</p>
+      <h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-900">สั่งเข้า Stock หลายรายการ</h1>
+      <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
+        ขั้นตอนนี้ใช้ยืนยัน forecast หลายรายการเข้า stock ในรอบเดียวกัน เพื่อให้ฝ่ายจัดสรรทำงานเป็นรอบจริง และให้ฝ่ายขายเห็น pipeline stock ในอนาคตได้
+      </p>
+    </div>
+
+    <div class="flex flex-wrap gap-3">
+      <%= link_to "กลับไป Forecast", forecasts_path(report_type: @report_type), class: "inline-flex items-center rounded-xl bg-stone-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-stone-800" %>
+      <%= link_to "ดูรายการสั่งทั้งหมด", stock_orders_path, class: "inline-flex items-center rounded-xl border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100" %>
+    </div>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-3">
+    <div class="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
+      <p class="text-sm text-stone-500">Forecast ที่เลือก</p>
+      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @selected_forecasts.size %></p>
+    </div>
+    <div class="rounded-3xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
+      <p class="text-sm text-emerald-700">จำนวนรถรวมจากข้อมูลที่มี</p>
+      <p class="mt-3 text-3xl font-semibold text-emerald-900"><%= @selected_forecasts.sum { |forecast| forecast.quantity_available.to_i } %></p>
+    </div>
+    <div class="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
+      <p class="text-sm text-stone-500">ชุดข้อมูลที่กำลังใช้</p>
+      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @report_type.to_s.titleize %></p>
+    </div>
+  </div>
+
+  <% if defined?(@stock_order_items) && @stock_order_items.any? { |item| item.errors.any? } %>
+    <div class="rounded-3xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-900">
+      <p class="font-semibold">บันทึกไม่สำเร็จ</p>
+      <ul class="mt-3 space-y-1">
+        <% @stock_order_items.each do |item| %>
+          <% next if item.errors.empty? %>
+          <% item.errors.full_messages.each do |message| %>
+            <li><%= "#{item.supply_forecast.model_label || item.supply_forecast.model_code}: #{message}" %></li>
+          <% end %>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= form_with url: forecast_stock_orders_path, method: :post, scope: :stock_order_batch, class: "space-y-8", data: { controller: "stock-order-quantities" } do |form| %>
+    <%= form.hidden_field :report_type, value: @report_type %>
+    <% @selected_forecasts.each do |forecast| %>
+      <%= hidden_field_tag "stock_order_batch[forecast_ids][]", forecast.id %>
+    <% end %>
+
+    <div class="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-stone-900">เลือกรายการสั่งเข้า Stock</h2>
+
+      <div class="mt-5 grid gap-5 lg:grid-cols-[1fr_1fr]">
+        <div>
+          <%= form.label :stock_order_id, "ปลายทางที่จะบันทึก", class: "block text-sm font-medium text-stone-700" %>
+          <%= form.select :stock_order_id,
+                          options_for_select(@draft_stock_orders.map { |order| ["ใช้รายการเดิม: #{order.display_title} (#{order.plan_no})", order.id] } + [["สร้างรายการสั่งใหม่", "new"]], params.dig(:stock_order_batch, :stock_order_id) || "new"),
+                          {},
+                          class: "mt-2 block w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm focus:border-stone-500 focus:outline-none" %>
+        </div>
+
+        <div>
+          <%= form.label :new_stock_order_title, "ชื่อรายการใหม่", class: "block text-sm font-medium text-stone-700" %>
+          <%= form.text_field :new_stock_order_title,
+                              value: params.dig(:stock_order_batch, :new_stock_order_title),
+                              placeholder: "เช่น สั่งเข้า Stock กลุ่ม SUV ประจำสัปดาห์",
+                              class: "mt-2 block w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm focus:border-stone-500 focus:outline-none" %>
+          <p class="mt-2 text-xs text-stone-500">จะถูกใช้เมื่อเลือก "สร้างรายการสั่งใหม่"</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
+      <div class="border-b border-stone-200 px-6 py-4">
+        <h2 class="text-lg font-semibold text-stone-900">รายการ forecast ที่จะสั่งเข้า Stock</h2>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-stone-200 text-sm">
+          <thead class="bg-stone-50 text-left text-stone-500">
+            <tr>
+              <th class="px-5 py-3 font-medium">Forecast</th>
+              <th class="px-5 py-3 font-medium">Model</th>
+              <th class="px-5 py-3 font-medium">Color</th>
+              <th class="px-5 py-3 font-medium text-right">Qty ที่มี</th>
+              <th class="px-5 py-3 font-medium text-right">Qty ที่จะสั่ง</th>
+              <th class="px-5 py-3 font-medium">Prod. Date</th>
+              <th class="px-5 py-3 font-medium">ETA</th>
+              <th class="px-5 py-3 font-medium">หมายเหตุ</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-stone-100 bg-white">
+            <% @selected_forecasts.each do |forecast| %>
+              <% item = @stock_order_items&.find { |stock_order_item| stock_order_item.supply_forecast_id == forecast.id } %>
+              <% item_params = params.dig(:stock_order_batch, :items, forecast.id.to_s) || {} %>
+              <tr class="hover:bg-stone-50/80">
+                <td class="whitespace-nowrap px-5 py-4 font-mono text-xs text-stone-500"><%= forecast.source_key %></td>
+                <td class="px-5 py-4">
+                  <div class="font-medium text-stone-900"><%= forecast.model_label || forecast.model_code %></div>
+                  <div class="text-stone-500"><%= [forecast.model_code, forecast.grade].compact.join(" • ").presence || "-" %></div>
+                </td>
+                <td class="px-5 py-4">
+                  <div class="font-medium text-stone-900"><%= forecast.color_name || "-" %></div>
+                  <div class="text-stone-500"><%= forecast.color_code.presence || "-" %></div>
+                </td>
+                <td class="whitespace-nowrap px-5 py-4 text-right">
+                  <div data-stock-order-quantities-target="remaining" data-row-id="<%= forecast.id %>" class="font-semibold text-stone-900"><%= forecast.quantity_available || "-" %></div>
+                  <div class="text-xs text-stone-500">ต้นทาง <%= forecast.quantity_available || "-" %></div>
+                </td>
+                <td class="px-5 py-4">
+                  <%= number_field_tag "stock_order_batch[items][#{forecast.id}][selected_quantity]",
+                                       item&.selected_quantity || item_params["selected_quantity"] || 1,
+                                       min: 1,
+                                       max: forecast.quantity_available,
+                                       data: {
+                                         action: "input->stock-order-quantities#refresh change->stock-order-quantities#refresh",
+                                         stock_order_quantities_target: "input",
+                                         row_id: forecast.id,
+                                         available_quantity: forecast.quantity_available
+                                       },
+                                       class: "block w-24 rounded-xl border border-stone-300 bg-white px-3 py-2 text-right text-sm text-stone-900 shadow-sm focus:border-stone-500 focus:outline-none" %>
+                  <p data-stock-order-quantities-target="warning" data-row-id="<%= forecast.id %>" class="mt-2 hidden text-xs font-medium text-rose-700"></p>
+                </td>
+                <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= forecast.estimated_production_date&.strftime("%d %b %Y") || "-" %></td>
+                <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= forecast.estimated_arrival_date&.strftime("%d %b %Y") || "-" %></td>
+                <td class="px-5 py-4">
+                  <%= text_field_tag "stock_order_batch[items][#{forecast.id}][note]",
+                                     item&.note || item_params["note"],
+                                     placeholder: "เช่น กันไว้สำหรับ showroom A",
+                                     class: "block w-full min-w-56 rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 shadow-sm focus:border-stone-500 focus:outline-none" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-3">
+      <%= form.submit "ยืนยันสั่งเข้า Stock", data: { stock_order_quantities_target: "submit" }, class: "inline-flex cursor-pointer items-center rounded-xl bg-amber-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-amber-300" %>
+      <%= link_to "กลับไปเลือก forecast ใหม่", forecasts_path(report_type: @report_type), class: "inline-flex items-center rounded-xl border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100" %>
+    </div>
+  <% end %>
+</section>
