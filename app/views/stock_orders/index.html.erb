@@ -1,61 +1,147 @@
-<% content_for :title, "รายการสั่งเข้า Stock" %>
+<% content_for :title, "Stock" %>
+
+<% tab_links = [
+  [ "all", "ทั้งหมด", @all_stock_items.size ],
+  [ "ordered", "สั่งเข้าแล้ว", @all_stock_items.count(&:status_ordered?) ],
+  [ "incoming", "กำลังเข้า", @all_stock_items.count(&:status_incoming?) ]
+] %>
 
 <section class="space-y-8">
-  <div class="app-soft-card flex flex-col gap-4 rounded-3xl border p-8 shadow-sm lg:flex-row lg:items-end lg:justify-between">
-    <div>
-      <p class="app-eyebrow text-sm font-medium uppercase tracking-[0.2em]">Allocation Workspace</p>
-      <h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-900">รายการสั่งเข้า Stock</h1>
-      <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
-        มุมมองนี้ใช้ติดตาม forecast ที่ฝ่ายจัดสรรเลือกสั่งเข้า stock แล้ว แม้รถจะยังไม่พร้อมขาย แต่ฝ่ายขายสามารถใช้วางแผนล่วงหน้าได้ในอนาคต
-      </p>
+  <div class="app-soft-card flex flex-col gap-6 rounded-3xl border p-8 shadow-sm">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <p class="app-eyebrow text-sm font-medium uppercase tracking-[0.2em]">Stock Workspace</p>
+        <h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-900">Stock</h1>
+        <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
+          มุมมองนี้รวมข้อมูล stock ที่ฝ่ายจัดสรรสั่งไว้และรายการที่เริ่มไหลเป็น stock กำลังเข้าแล้วในหน้าเดียว
+          เพื่อให้เห็นเส้นทางจากความต้องการภายใน ไปสู่ pipeline ที่ฝ่ายขายใช้งานต่อได้
+        </p>
+      </div>
     </div>
 
+    <div class="flex flex-wrap items-center gap-3 border-t border-stone-200 pt-5">
+      <% tab_links.each do |tab_key, label, count| %>
+        <% classes = @active_tab == tab_key ? "app-tab-active" : "app-tab-inactive" %>
+        <%= link_to stock_orders_path(tab: (tab_key == "all" ? nil : tab_key)),
+                    class: "#{classes} inline-flex items-center rounded-full px-4 py-2 text-sm font-medium transition" do %>
+          <span><%= label %></span>
+          <span class="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs"><%= count %></span>
+        <% end %>
+      <% end %>
+    </div>
   </div>
 
-  <div class="grid gap-4 md:grid-cols-3">
+  <div class="grid gap-4 md:grid-cols-4">
     <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
-      <p class="text-sm text-stone-500">จำนวนรายการสั่ง</p>
-      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @stock_orders.count %></p>
+      <p class="text-sm text-stone-500">รายการในมุมมองนี้</p>
+      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @stock_items.size %></p>
     </div>
-    <div class="rounded-3xl border border-sky-200 bg-sky-50 p-6 shadow-sm">
-      <p class="text-sm text-sky-700">Forecast ที่ถูกสั่งแล้ว</p>
-      <p class="mt-3 text-3xl font-semibold text-sky-900"><%= @stock_orders.sum { |order| order.stock_plan_items.size } %></p>
+    <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
+      <p class="text-sm text-stone-500">สั่งเข้าแล้ว</p>
+      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @all_stock_items.count(&:status_ordered?) %></p>
     </div>
-    <div class="rounded-3xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
-      <p class="text-sm text-emerald-700">จำนวนที่สั่งรวม</p>
-      <p class="mt-3 text-3xl font-semibold text-emerald-900"><%= @stock_orders.sum(&:total_selected_quantity) %></p>
+    <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
+      <p class="text-sm text-stone-500">กำลังเข้า</p>
+      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @all_stock_items.count(&:status_incoming?) %></p>
+    </div>
+    <div class="rounded-3xl border border-[#fecdd3] bg-[#fff1f2] p-6 shadow-sm">
+      <p class="text-sm text-[#be123c]">Qty รวม</p>
+      <p class="mt-3 text-3xl font-semibold text-[#881337]"><%= @all_stock_items.sum(&:selected_quantity) %></p>
     </div>
   </div>
 
   <div class="app-soft-card overflow-hidden rounded-3xl border shadow-sm">
     <div class="border-b border-stone-200 px-6 py-4">
-      <h2 class="text-lg font-semibold text-stone-900">รายการทั้งหมด</h2>
+      <h2 class="text-lg font-semibold text-stone-900">
+        <%=
+          case @active_tab
+          when "ordered" then "รายการที่สั่งเข้า Stock แล้ว"
+          when "incoming" then "รายการที่กลายเป็น Stock กำลังเข้า"
+          else "รายการ Stock ทั้งหมดใน flow"
+          end
+        %>
+      </h2>
+      <p class="mt-1 text-sm text-stone-500">
+        <%=
+          case @active_tab
+          when "ordered" then "ใช้ติดตามรายการที่ฝ่ายจัดสรรสั่งไว้แล้ว แต่ยังรอข้อมูลจากบริษัทแม่ให้ครบขึ้น"
+          when "incoming" then "ใช้ติดตาม pipeline stock ที่เริ่มมี Qty, Prod. Date และ ETA ชัดเจนแล้ว"
+          else "มองข้อมูลชุดเดียวกันแบบต่อเนื่อง ตั้งแต่สั่งเข้าไปจนเริ่มกลายเป็น stock กำลังเข้า"
+          end
+        %>
+      </p>
     </div>
 
-    <div class="divide-y divide-stone-200">
-      <% @stock_orders.each do |stock_order| %>
-        <div class="flex flex-col gap-4 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div class="flex flex-wrap items-center gap-3">
-              <h3 class="text-lg font-semibold text-stone-900"><%= stock_order.display_title %></h3>
-              <span class="app-btn-secondary rounded-full px-3 py-1 text-xs font-medium"><%= stock_order.plan_no %></span>
-            </div>
-            <p class="mt-2 text-sm text-stone-500">
-              สร้างโดย <span class="font-medium text-stone-700"><%= stock_order.requested_by %></span>
-              • <%= stock_order.stock_plan_items.size %> forecast lines
-              • จำนวนรวม <%= stock_order.total_selected_quantity %>
-              • กำลังเข้า <%= stock_order.incoming_items_count %>
-            </p>
-          </div>
-
-          <div class="flex flex-wrap gap-3">
-            <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
-              <%= stock_order.status.humanize %>
-            </span>
-            <%= link_to "ดูรายละเอียด", stock_order_path(stock_order), class: "inline-flex items-center rounded-xl border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100" %>
-          </div>
-        </div>
-      <% end %>
-    </div>
+    <% if @stock_items.blank? %>
+      <div class="px-6 py-12 text-center">
+        <p class="text-base font-medium text-stone-900">ยังไม่มีรายการในมุมมองนี้</p>
+        <p class="mt-2 text-sm text-stone-500">ลองกลับไปที่ Forecast เพื่อสั่งเข้า Stock ก่อน หรือกด Sync เพื่อจำลองข้อมูลตอบกลับจากบริษัทแม่</p>
+      </div>
+    <% else %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-stone-200 text-sm">
+          <thead class="bg-stone-50 text-left text-stone-500">
+            <tr>
+              <th class="px-5 py-3 font-medium">Stock</th>
+              <th class="px-5 py-3 font-medium">Model</th>
+              <th class="px-5 py-3 font-medium">Color</th>
+              <th class="px-5 py-3 font-medium">Location</th>
+              <th class="px-5 py-3 font-medium text-right">Qty</th>
+              <th class="px-5 py-3 font-medium">In Stock</th>
+              <th class="px-5 py-3 font-medium">สถานะ</th>
+              <th class="px-5 py-3 font-medium">รายการสั่งเข้า Stock</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-stone-100 bg-white">
+            <% @stock_items.each do |item| %>
+              <% forecast = item.supply_forecast %>
+              <tr class="hover:bg-stone-50/80">
+                <td class="whitespace-nowrap px-5 py-4">
+                  <div class="font-semibold text-stone-900">
+                    <%= item.status_incoming? ? incoming_stock_reference(item) : "รอสร้าง" %>
+                  </div>
+                  <div class="text-xs text-stone-500"><%= item.stock_plan.plan_no %></div>
+                </td>
+                <td class="px-5 py-4">
+                  <div class="font-medium text-stone-900"><%= forecast.model_label || forecast.model_code %></div>
+                  <div class="text-stone-500"><%= [forecast.model_code, forecast.grade].compact.join(" • ").presence || "-" %></div>
+                </td>
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <%= forecast_color_swatch(forecast) %>
+                    <div class="font-medium text-stone-900"><%= forecast.color_name || "-" %></div>
+                  </div>
+                </td>
+                <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= stock_workspace_location(item) %></td>
+                <td class="whitespace-nowrap px-5 py-4 text-right font-semibold text-stone-900"><%= item.selected_quantity %></td>
+                <td class="whitespace-nowrap px-5 py-4">
+                  <div class="font-medium text-stone-900"><%= stock_workspace_arrival_label(item) %></div>
+                  <div class="text-xs text-stone-500">
+                    <% if forecast.estimated_arrival_date.present? %>
+                      พร้อมรับเข้า <%= forecast.estimated_arrival_date.strftime("%d %b %Y") %>
+                    <% else %>
+                      รอข้อมูล ETA
+                    <% end %>
+                  </div>
+                </td>
+                <td class="whitespace-nowrap px-5 py-4">
+                  <% if item.status_incoming? %>
+                    <span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800">กำลังเข้า</span>
+                  <% else %>
+                    <span class="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-800">สั่งเข้าแล้ว</span>
+                  <% end %>
+                </td>
+                <td class="px-5 py-4">
+                  <div class="flex flex-col items-start gap-2">
+                    <div class="font-medium text-stone-900"><%= item.stock_plan.display_title %></div>
+                    <%= link_to "ดูรายละเอียด", stock_order_path(item.stock_plan), class: "inline-flex items-center rounded-xl border border-stone-300 px-3 py-2 text-xs font-medium text-stone-700 transition hover:bg-stone-100" %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
   </div>
 </section>

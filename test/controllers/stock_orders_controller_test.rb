@@ -41,8 +41,24 @@ class StockOrdersControllerTest < ActionDispatch::IntegrationTest
     get stock_orders_url
 
     assert_response :success
-    assert_select "h1", /รายการสั่งเข้า Stock/
-    assert_select "h3", /สั่งเข้า Stock Hilux รอบด่วน/
+    assert_select "h1", /Stock/
+    assert_select "a", /ทั้งหมด/
+    assert_select "a", /สั่งเข้าแล้ว/
+    assert_select "a", /กำลังเข้า/
+    assert_select "td", /Hilux Revo Prerunner/
+    assert_select "span", /สั่งเข้าแล้ว/
+  end
+
+  test "should filter stock workspace to incoming items" do
+    item = @stock_order.stock_plan_items.last
+    item.supply_forecast.update!(estimated_arrival_date: Date.current + 21.days)
+    item.update!(status: :incoming, incoming_at: Time.current)
+
+    get stock_orders_url(tab: :incoming)
+
+    assert_response :success
+    assert_select "td", /Hilux Revo Prerunner/
+    assert_select "span", /กำลังเข้า/
   end
 
   test "should get stock order detail" do

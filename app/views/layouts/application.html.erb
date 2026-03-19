@@ -44,12 +44,8 @@
                 <span>Forecast</span>
               <% end %>
               <%= link_to stock_orders_path, class: sidebar_link_classes(stock_orders_path) do %>
-                <span class="app-nav-icon inline-flex h-9 w-9 items-center justify-center rounded-2xl"><%= sidebar_icon(:orders) %></span>
-                <span>รายการสั่งเข้า Stock</span>
-              <% end %>
-              <%= link_to incoming_stocks_path, class: sidebar_link_classes(incoming_stocks_path) do %>
-                <span class="app-nav-icon inline-flex h-9 w-9 items-center justify-center rounded-2xl"><%= sidebar_icon(:incoming) %></span>
-                <span>Stock กำลังเข้า</span>
+                <span class="app-nav-icon inline-flex h-9 w-9 items-center justify-center rounded-2xl"><%= sidebar_icon(:stock) %></span>
+                <span>Stock</span>
               <% end %>
             </nav>
 

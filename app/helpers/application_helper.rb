@@ -57,6 +57,8 @@ module ApplicationHelper
       '<path d="M4 4h12v3H4zM4 9h12v7H4zM6 11h3v3H6zM11 11h3v1h-3zM11 13h3v1h-3z" />'
     when :orders
       '<path d="M5 4h8l3 3v9H5V4Zm8 1.5V8h2.5" /><path d="M7 11h6M7 13.5h6" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" />'
+    when :stock
+      '<path d="M4 6.5 10 3l6 3.5v7L10 17l-6-3.5v-7Z" /><path d="M10 3v14" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round" /><path d="M4 6.5 10 10l6-3.5" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round" />'
     when :incoming
       '<path d="M10 3v8" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" /><path d="m6.5 8.5 3.5 3.5 3.5-3.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round" /><path d="M4 15h12" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" />'
     else
@@ -101,6 +103,21 @@ module ApplicationHelper
     else
       "ช้า #{days_remaining.abs} วัน"
     end
+  end
+
+  def stock_workspace_location(item)
+    return incoming_stock_location(item) if item.status_incoming?
+
+    "รอข้อมูลปลายทาง"
+  end
+
+  def stock_workspace_arrival_label(item)
+    return incoming_stock_arrival_label(item) if item.status_incoming?
+
+    arrival_date = item.supply_forecast.estimated_arrival_date
+    return "รอ ETA จากบริษัทแม่" if arrival_date.blank?
+
+    incoming_stock_arrival_label(item)
   end
 
   private

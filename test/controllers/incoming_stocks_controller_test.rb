@@ -44,18 +44,9 @@ class IncomingStocksControllerTest < ActionDispatch::IntegrationTest
     StockPlanItem.create!(stock_plan: plan, supply_forecast: ordered_forecast, selected_quantity: 1)
   end
 
-  test "should get incoming stock index with only incoming items" do
+  test "should redirect incoming stock index to stock workspace incoming tab" do
     get incoming_stocks_url
 
-    assert_response :success
-    assert_select "h1", /Stock กำลังเข้า/
-    assert_select "td", /Camry HEV Premium Luxury/
-    assert_select "th", /Stock/
-    assert_select "th", /Location/
-    assert_select "th", /In Stock/
-    assert_select "td", /STK-/
-    assert_select "th", text: /ETA/, count: 0
-    assert_select "th", text: /Ref Key/, count: 0
-    assert_select "td", text: /Hilux Revo Prerunner/, count: 0
+    assert_redirected_to stock_orders_url(tab: :incoming)
   end
 end
