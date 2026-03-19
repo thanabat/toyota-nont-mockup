@@ -1,4 +1,42 @@
-<div>
-<h1>Toyota Stock Prototype</h1>
-<p>หน้าแรกของระบบ stock รถ</p>
-</div>
+<% content_for :title, "Toyota Stock Prototype" %>
+
+<section class="grid w-full gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+  <div class="rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
+    <p class="text-sm font-medium uppercase tracking-[0.2em] text-amber-700">Toyota Stock Prototype</p>
+    <h1 class="mt-4 text-4xl font-semibold tracking-tight text-stone-900">
+      เริ่มจากการมองเห็น forecast และการเลือกนำรถเข้า stock
+    </h1>
+    <p class="mt-4 max-w-2xl text-base leading-7 text-stone-600">
+      เวอร์ชันนี้เริ่มจากงานของฝ่ายจัดสรรก่อน โดยมีข้อมูล forecast จากบริษัทแม่และแผนการนำรถเข้า stock
+      เพื่อให้ต่อยอดไปเป็น flow รับรถ, QC, ย้ายรถ และขายต่อได้ภายหลัง
+    </p>
+
+    <div class="mt-8 flex flex-wrap gap-3">
+      <%= link_to "ดู Forecast Dashboard", forecasts_path, class: "inline-flex items-center rounded-xl bg-amber-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-amber-700" %>
+      <span class="inline-flex items-center rounded-xl border border-stone-200 px-4 py-3 text-sm text-stone-600">
+        seeded data พร้อมสำหรับ demo flow
+      </span>
+    </div>
+  </div>
+
+  <div class="grid gap-4">
+    <div class="rounded-3xl border border-stone-200 bg-stone-950 p-6 text-stone-50 shadow-sm">
+      <h2 class="text-lg font-semibold">Flow รอบแรก</h2>
+      <ul class="mt-4 space-y-3 text-sm leading-6 text-stone-300">
+        <li>1. sync forecast จากบริษัทแม่</li>
+        <li>2. ฝ่ายจัดสรรเห็นรุ่น สี จำนวน และวันคาดการณ์เข้า</li>
+        <li>3. เลือก forecast ที่จะนำเข้า stock</li>
+      </ul>
+    </div>
+
+    <div class="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-stone-900">Domain ที่มีแล้ว</h2>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        <div class="rounded-2xl bg-stone-100 p-4 text-sm text-stone-700">ForecastSyncRun</div>
+        <div class="rounded-2xl bg-stone-100 p-4 text-sm text-stone-700">SupplyForecast</div>
+        <div class="rounded-2xl bg-stone-100 p-4 text-sm text-stone-700">StockPlan</div>
+        <div class="rounded-2xl bg-stone-100 p-4 text-sm text-stone-700">StockPlanItem</div>
+      </div>
+    </div>
+  </div>
+</section>

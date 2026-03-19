@@ -23,9 +23,17 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <main class="container mx-auto mt-28 px-5 flex">
-      <%= yield %>
+  <body class="min-h-screen bg-stone-100 text-stone-900">
+    <main class="mx-auto flex min-h-screen w-full max-w-7xl px-6 py-10 lg:px-10">
+      <div class="w-full">
+        <% if notice.present? %>
+          <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            <%= notice %>
+          </div>
+        <% end %>
+
+        <%= yield %>
+      </div>
     </main>
   </body>
 </html>

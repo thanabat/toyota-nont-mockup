@@ -14,6 +14,8 @@ class SupplyForecastTest < ActiveSupport::TestCase
     SupplyForecast.create!(
       forecast_sync_run: @sync_run,
       source_key: "FORECAST-001",
+      source_batch_key: "BATCH-001",
+      source_line_no: 1,
       source_report_type: :daily,
       model_code: "YARIS-ATIV",
       quantity_available: 3,
@@ -23,6 +25,8 @@ class SupplyForecastTest < ActiveSupport::TestCase
     duplicate = SupplyForecast.new(
       forecast_sync_run: @sync_run,
       source_key: "FORECAST-001",
+      source_batch_key: "BATCH-001",
+      source_line_no: 2,
       source_report_type: :daily,
       model_code: "COROLLA-CROSS",
       quantity_available: 2,
@@ -37,6 +41,8 @@ class SupplyForecastTest < ActiveSupport::TestCase
     forecast = SupplyForecast.create!(
       forecast_sync_run: @sync_run,
       source_key: "FORECAST-002",
+      source_batch_key: "BATCH-002",
+      source_line_no: 1,
       source_report_type: :daily,
       model_code: "HILUX-REVO",
       quantity_available: 4,
@@ -48,6 +54,8 @@ class SupplyForecastTest < ActiveSupport::TestCase
     forecast.apply_sync!(
       {
         source_report_type: :daily,
+        source_batch_key: "BATCH-002",
+        source_line_no: 1,
         model_code: "HILUX-REVO",
         quantity_available: 5
       },

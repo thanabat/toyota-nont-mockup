@@ -12,6 +12,7 @@ class StockPlanItem < ApplicationRecord
 
   def selected_quantity_must_fit_forecast
     return if supply_forecast.blank? || selected_quantity.blank?
+    return errors.add(:base, "forecast quantity is not available yet") if supply_forecast.quantity_available.blank?
     return if selected_quantity <= supply_forecast.quantity_available
 
     errors.add(:selected_quantity, "must be less than or equal to the forecast quantity")

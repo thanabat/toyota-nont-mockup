@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_19_113000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_19_163000) do
   create_table "forecast_sync_runs", force: :cascade do |t|
     t.datetime "completed_at"
     t.datetime "created_at", null: false
@@ -60,20 +60,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_19_113000) do
     t.datetime "created_at", null: false
     t.date "estimated_arrival_date"
     t.date "estimated_production_date"
+    t.datetime "first_seen_at", null: false
     t.integer "forecast_sync_run_id", null: false
     t.string "grade"
+    t.integer "last_sync_change_kind", default: 0, null: false
     t.datetime "last_synced_at", null: false
     t.string "model_code", null: false
     t.string "model_label"
-    t.integer "quantity_available", default: 0, null: false
+    t.integer "quantity_available"
     t.datetime "selected_at"
+    t.string "source_batch_key", null: false
     t.date "source_generated_on"
     t.string "source_key", null: false
+    t.integer "source_line_no", null: false
     t.integer "source_report_type", default: 0, null: false
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["estimated_arrival_date"], name: "index_supply_forecasts_on_estimated_arrival_date"
     t.index ["forecast_sync_run_id"], name: "index_supply_forecasts_on_forecast_sync_run_id"
+    t.index ["last_sync_change_kind"], name: "index_supply_forecasts_on_last_sync_change_kind"
+    t.index ["source_batch_key", "source_line_no"], name: "index_supply_forecasts_on_source_batch_key_and_source_line_no", unique: true
+    t.index ["source_batch_key"], name: "index_supply_forecasts_on_source_batch_key"
     t.index ["source_key"], name: "index_supply_forecasts_on_source_key", unique: true
     t.index ["status"], name: "index_supply_forecasts_on_status"
     t.check_constraint "quantity_available >= 0", name: "supply_forecasts_quantity_available_non_negative"

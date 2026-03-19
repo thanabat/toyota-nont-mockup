@@ -11,6 +11,8 @@ class StockPlanItemTest < ActiveSupport::TestCase
     @forecast = SupplyForecast.create!(
       forecast_sync_run: @sync_run,
       source_key: "FORECAST-003",
+      source_batch_key: "BATCH-003",
+      source_line_no: 1,
       source_report_type: :weekly,
       model_code: "COROLLA-CROSS",
       quantity_available: 2,
@@ -34,5 +36,14 @@ class StockPlanItemTest < ActiveSupport::TestCase
 
     assert_not duplicate.valid?
     assert_includes duplicate.errors[:supply_forecast_id], "has already been taken"
+  end
+
+  test "forecast without quantity cannot be selected yet" do
+    @forecast.update!(quantity_available: nil)
+
+    item = StockPlanItem.new(stock_plan: @plan, supply_forecast: @forecast, selected_quantity: 1)
+
+    assert_not item.valid?
+    assert_includes item.errors[:base], "forecast quantity is not available yet"
   end
 end
