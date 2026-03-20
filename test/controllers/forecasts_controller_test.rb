@@ -103,4 +103,11 @@ class ForecastsControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to stock_orders_url(tab: :incoming)
   end
+
+  test "should redirect import file flow away from forecasts" do
+    patch prototype_flow_url, params: { flow: :import_file, return_to: "/import_flow" }
+    get forecasts_url(report_type: :daily)
+
+    assert_redirected_to import_flow_url(report_type: :daily)
+  end
 end

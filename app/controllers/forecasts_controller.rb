@@ -2,6 +2,7 @@ class ForecastsController < ApplicationController
   REPORT_TYPES = %w[daily weekly monthly].freeze
 
   before_action :redirect_sales_mode_to_stock_workspace
+  before_action :redirect_import_flow_to_import_workspace
 
   def index
     @current_report_type = normalized_report_type
@@ -37,6 +38,12 @@ class ForecastsController < ApplicationController
     return unless sales_mode?
 
     redirect_to stock_orders_path(tab: :incoming), alert: "ฝ่ายขายใช้งานผ่านหน้า Stock กำลังเข้าเป็นหลัก"
+  end
+
+  def redirect_import_flow_to_import_workspace
+    return if auto_sync_flow?
+
+    redirect_to import_flow_path(report_type: normalized_report_type), alert: "Import File Flow ใช้งานผ่านหน้า Import File เป็นหลัก"
   end
 
   def normalized_report_type

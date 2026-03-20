@@ -1,0 +1,155 @@
+<% content_for :title, "Import File Flow" %>
+
+<% report_tabs = [["daily", "Daily"], ["weekly", "Weekly"], ["monthly", "Monthly"]] %>
+
+<section class="space-y-8">
+  <div class="app-soft-card rounded-3xl border p-8 shadow-sm">
+    <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <p class="app-eyebrow text-sm font-medium uppercase tracking-[0.2em]">Import File Flow</p>
+        <h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-900">นำเข้าไฟล์อัปเดตจากระบบบริษัทแม่</h1>
+        <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
+          แนวคิดนี้จำลองการที่ฝ่ายจัดสรร export คำสั่งซื้อหรือไฟล์อัปเดตจากระบบแม่ แล้วนำข้อมูล daily, weekly, monthly เข้าระบบเรา
+          เพื่อให้ stock และ inventory อัปเดตตามไฟล์ล่าสุดโดยอัตโนมัติ
+        </p>
+      </div>
+
+      <%= form_with url: import_flow_import_path(report_type: @current_report_type),
+                    method: :post,
+                    class: "flex flex-wrap items-center gap-3",
+                    data: {
+                      controller: "sync-feedback",
+                      action: "turbo:submit-start->sync-feedback#start turbo:submit-end->sync-feedback#reset",
+                      sync_feedback_message_value: "กำลังนำเข้าไฟล์ #{@current_report_type.titleize} และอัปเดต stock workspace..."
+                    } do %>
+        <button type="submit"
+                data-sync-feedback-target="button"
+                data-turbo-submits-with="กำลังนำเข้าไฟล์..."
+                class="app-btn-primary inline-flex cursor-pointer items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium transition disabled:cursor-wait disabled:bg-stone-500">
+          <span class="inline-flex h-2.5 w-2.5 rounded-full bg-white/80"></span>
+          <span>นำเข้าไฟล์ <%= @current_report_type.titleize %></span>
+        </button>
+        <div data-sync-feedback-target="panel" class="hidden rounded-2xl border border-[#fecdd3] bg-[#fff1f2] px-4 py-3 text-sm text-[#be123c]">
+          <div class="flex items-center gap-3">
+            <span class="inline-flex h-3 w-3 animate-pulse rounded-full bg-[#e20712]"></span>
+            <span data-sync-feedback-target="label">กำลังนำเข้าไฟล์...</span>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="mt-6 flex flex-wrap items-center gap-3 border-t border-stone-200 pt-5">
+      <% report_tabs.each do |tab_key, label| %>
+        <% classes = @current_report_type == tab_key ? "app-tab-active" : "app-tab-inactive" %>
+        <%= link_to import_flow_path(report_type: tab_key),
+                    class: "#{classes} inline-flex items-center rounded-full px-4 py-2 text-sm font-medium transition" do %>
+          <span><%= label %></span>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-4">
+    <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
+      <p class="text-sm text-stone-500">ไฟล์ที่กำลังดู</p>
+      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @current_report_type.titleize %></p>
+    </div>
+    <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
+      <p class="text-sm text-stone-500">Rows ในไฟล์ล่าสุด</p>
+      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @import_rows.size %></p>
+    </div>
+    <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
+      <p class="text-sm text-stone-500">สั่งเข้าแล้ว</p>
+      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @ordered_count %></p>
+    </div>
+    <div class="rounded-3xl border border-[#fecdd3] bg-[#fff1f2] p-6 shadow-sm">
+      <p class="text-sm text-[#be123c]">กำลังเข้า</p>
+      <p class="mt-3 text-3xl font-semibold text-[#881337]"><%= @incoming_count %></p>
+    </div>
+  </div>
+
+  <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <h2 class="text-lg font-semibold text-stone-900">ข้อมูลจากไฟล์ล่าสุด</h2>
+        <p class="mt-1 text-sm text-stone-500">
+          <% if @latest_import_run.present? %>
+            Imported ล่าสุดเมื่อ <%= @latest_import_run.started_at.strftime("%d %b %Y %H:%M") %>
+          <% else %>
+            ยังไม่มีประวัติการนำเข้าในชุดข้อมูลนี้
+          <% end %>
+        </p>
+      </div>
+
+      <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
+        ไฟล์ 1 ชุดอาจมีหลาย line ตาม model, color และ quantity ในรอบเดียวกัน
+      </div>
+    </div>
+
+    <% if @import_batches.blank? %>
+      <div class="px-4 py-10 text-center">
+        <p class="text-base font-medium text-stone-900">ยังไม่มีข้อมูลในไฟล์ชุดนี้</p>
+      </div>
+    <% else %>
+      <div class="mt-6 space-y-5">
+        <% @import_batches.each do |batch_key, rows| %>
+          <div class="overflow-hidden rounded-3xl border border-stone-200">
+            <div class="flex flex-col gap-2 border-b border-stone-200 bg-stone-50 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <div class="flex items-center gap-3">
+                  <span class="inline-flex items-center rounded-full bg-[#15161B] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-white"><%= @current_report_type %></span>
+                  <h3 class="text-lg font-semibold text-stone-900"><%= batch_key %></h3>
+                </div>
+                <p class="mt-1 text-sm text-stone-500"><%= rows.size %> lines in this imported file</p>
+              </div>
+              <%= link_to "ดู Stock ที่อัปเดต", stock_orders_path(tab: :incoming), class: "app-btn-ghost inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium transition" %>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-stone-200 text-sm">
+                <thead class="bg-white text-left text-stone-500">
+                  <tr>
+                    <th class="px-5 py-3 font-medium">Model</th>
+                    <th class="px-5 py-3 font-medium">Color</th>
+                    <th class="px-5 py-3 font-medium text-right">Qty</th>
+                    <th class="px-5 py-3 font-medium">Prod. Date</th>
+                    <th class="px-5 py-3 font-medium">ETA</th>
+                    <th class="px-5 py-3 font-medium">ผลกับ Stock</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-stone-100 bg-white">
+                  <% rows.each do |forecast| %>
+                    <tr class="hover:bg-stone-50/80">
+                      <td class="px-5 py-4">
+                        <div class="font-medium text-stone-900"><%= forecast.model_label || forecast.model_code %></div>
+                        <div class="text-stone-500"><%= [forecast.model_code, forecast.grade].compact.join(" • ").presence || "-" %></div>
+                      </td>
+                      <td class="px-5 py-4">
+                        <div class="flex items-center gap-3">
+                          <%= forecast_color_swatch(forecast) %>
+                          <div class="font-medium text-stone-900"><%= forecast.color_name || "-" %></div>
+                        </div>
+                      </td>
+                      <td class="whitespace-nowrap px-5 py-4 text-right font-semibold text-stone-900"><%= forecast.quantity_available || "-" %></td>
+                      <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= forecast.estimated_production_date&.strftime("%d %b %Y") || "-" %></td>
+                      <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= forecast.estimated_arrival_date&.strftime("%d %b %Y") || "-" %></td>
+                      <td class="px-5 py-4">
+                        <% if forecast.stock_plan_item&.status_incoming? %>
+                          <span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800">กำลังเข้า</span>
+                        <% elsif forecast.stock_plan_item&.status_ordered? %>
+                          <span class="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-800">สั่งเข้าแล้ว</span>
+                        <% else %>
+                          <span class="inline-flex items-center rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-700">รอเชื่อมกับ stock</span>
+                        <% end %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</section>

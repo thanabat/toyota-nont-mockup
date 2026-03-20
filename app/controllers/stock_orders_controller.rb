@@ -10,13 +10,21 @@ class StockOrdersController < ApplicationController
         -(item.incoming_at || item.created_at).to_i
       ]
     end
-    @stock_items = case @active_tab
-    when "ordered"
-      @all_stock_items.select(&:status_ordered?)
-    when "incoming"
-      @all_stock_items.select(&:status_incoming?)
+
+    if sales_mode?
+      @active_tab = "incoming"
+      @stock_items = @all_stock_items.select(&:status_incoming?)
+      @sales_followed_count = @stock_items.count { |item| item.sales_interests.any? }
+      @sales_customer_waiting_count = @stock_items.count { |item| item.sales_interests.any?(&:status_customer_waiting?) }
     else
-      @all_stock_items
+      @stock_items = case @active_tab
+      when "ordered"
+        @all_stock_items.select(&:status_ordered?)
+      when "incoming"
+        @all_stock_items.select(&:status_incoming?)
+      else
+        @all_stock_items
+      end
     end
   end
 
@@ -30,7 +38,13 @@ class StockOrdersController < ApplicationController
     report_types = ordered_items.filter_map { |item| item.supply_forecast&.source_report_type }.uniq
 
     if report_types.empty?
-      return redirect_to stock_orders_path(tab: active_tab), notice: "เช็คสถานะล่าสุดแล้ว • ตอนนี้ไม่มีรายการที่รออัปเดตเพิ่มเติม"
+      empty_notice = if import_file_flow?
+        "นำเข้าไฟล์อัปเดตล่าสุดแล้ว • ตอนนี้ไม่มีรายการที่รออัปเดตเพิ่มเติม"
+      else
+        "เช็คสถานะล่าสุดแล้ว • ตอนนี้ไม่มีรายการที่รออัปเดตเพิ่มเติม"
+      end
+
+      return redirect_to stock_orders_path(tab: active_tab), notice: empty_notice
     end
 
     sleep 1.1 if Rails.env.development?
@@ -48,8 +62,9 @@ class StockOrdersController < ApplicationController
       promoted_to_incoming += result.promoted_to_incoming
     end
 
+    lead_notice = import_file_flow? ? "นำเข้าไฟล์อัปเดตล่าสุดแล้ว" : "เช็คสถานะล่าสุดแล้ว"
     notice = [
-      "เช็คสถานะล่าสุดแล้ว",
+      lead_notice,
       "#{updated} updated",
       "#{inserted} new",
       "#{archived} archived",
