@@ -23,6 +23,19 @@ class StockOrdersControllerTest < ActionDispatch::IntegrationTest
       last_synced_at: Time.current
     )
 
+    SupplyForecast.create!(
+      forecast_sync_run: sync_run,
+      source_key: "FC-MONTHLY-TEST-L1",
+      source_batch_key: "FC-MONTHLY-TEST",
+      source_line_no: 1,
+      source_report_type: :monthly,
+      model_code: "CAMRY",
+      model_label: "Camry HEV Premium Luxury",
+      color_name: "Precious Metal",
+      quantity_available: 3,
+      last_synced_at: Time.current
+    )
+
     @stock_order = StockPlan.create!(
       plan_no: "SP-TEST-ORDER-001",
       title: "สั่งเข้า Stock Hilux รอบด่วน",
@@ -91,6 +104,23 @@ class StockOrdersControllerTest < ActionDispatch::IntegrationTest
     assert_select "a", text: /ทั้งหมด/, count: 0
     assert_select "th", text: /รายการสั่งเข้า Stock/, count: 0
     assert_select "button", /ติดตาม/
+  end
+
+  test "should show import-oriented columns in import file flow" do
+    patch prototype_flow_url, params: { flow: :import_file, return_to: "/stock_orders" }
+    get stock_orders_url
+
+    assert_response :success
+    assert_select "h1", /รายการติดตาม/
+    assert_select "h2", /รายการทั้งหมดที่เข้าสู่ระบบจากไฟล์นำเข้า/
+    assert_select "th", text: /Stock/, count: 0
+    assert_select "th", /อัปเดตล่าสุดจาก/
+    assert_select "th", /Prod\. Date/
+    assert_select "th", /ETA/
+    assert_select "th", text: /รายการสั่งเข้า Stock/, count: 0
+    assert_select "td", /Camry HEV Premium Luxury/
+    assert_select "span", /จาก Monthly/
+    assert_select "span", /สั่งเข้าแล้ว/
   end
 
   test "should get stock order detail" do

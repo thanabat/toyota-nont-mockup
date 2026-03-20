@@ -68,7 +68,7 @@
                 <% end %>
                 <%= link_to stock_orders_path, class: sidebar_link_classes(stock_orders_path) do %>
                   <span class="app-nav-icon inline-flex h-9 w-9 items-center justify-center rounded-2xl"><%= sidebar_icon(:stock) %></span>
-                  <span>Stock</span>
+                  <span><%= import_file_flow? && allocation_mode? ? "รายการติดตาม" : "Stock" %></span>
                 <% end %>
               </nav>
 

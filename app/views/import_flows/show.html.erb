@@ -8,7 +8,7 @@
         <h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-900">นำเข้าไฟล์อัปเดตจากระบบบริษัทแม่</h1>
         <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
           แนวคิดนี้จำลองการที่ฝ่ายจัดสรร export คำสั่งซื้อหรือไฟล์อัปเดตจากระบบแม่ แล้วนำข้อมูล daily, weekly, monthly เข้าระบบเรา
-          เพื่อให้ stock และ inventory อัปเดตตามไฟล์ล่าสุดโดยอัตโนมัติ
+          เพื่อให้ระบบของเราสร้างหรืออัปเดตรายการสั่งซื้อที่ต้องติดตามต่อจากไฟล์ล่าสุดโดยอัตโนมัติ
         </p>
       </div>
 
@@ -67,7 +67,7 @@
     </div>
   </div>
 
-  <div class="grid gap-4 md:grid-cols-4">
+  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
     <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
       <p class="text-sm text-stone-500"><%= @import_initialized ? "ชุดข้อมูลล่าสุด" : "ไฟล์แรกที่จะนำเข้า" %></p>
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @current_report_type.titleize %></p>
@@ -77,12 +77,16 @@
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @import_rows.size %></p>
     </div>
     <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
-      <p class="text-sm text-stone-500">สั่งเข้าแล้ว</p>
-      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @ordered_count %></p>
+      <p class="text-sm text-stone-500">สร้างใหม่</p>
+      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @new_count %></p>
     </div>
-    <div class="rounded-3xl border border-[#fecdd3] bg-[#fff1f2] p-6 shadow-sm">
-      <p class="text-sm text-[#be123c]">กำลังเข้า</p>
-      <p class="mt-3 text-3xl font-semibold text-[#881337]"><%= @incoming_count %></p>
+    <div class="rounded-3xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+      <p class="text-sm text-amber-700">อัปเดตข้อมูล</p>
+      <p class="mt-3 text-3xl font-semibold text-amber-900"><%= @updated_count %></p>
+    </div>
+    <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
+      <p class="text-sm text-stone-500">ไม่มีการเปลี่ยนแปลง</p>
+      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @unchanged_count %></p>
     </div>
   </div>
 
@@ -127,7 +131,7 @@
                 </div>
                 <p class="mt-1 text-sm text-stone-500"><%= rows.size %> lines in this imported file</p>
               </div>
-              <%= link_to "ดู Stock ที่อัปเดต", stock_orders_path(tab: :incoming), class: "app-btn-ghost inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium transition" %>
+              <%= link_to "ดูรายการติดตามที่อัปเดต", stock_orders_path, class: "app-btn-ghost inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium transition" %>
             </div>
 
             <div class="overflow-x-auto">
@@ -139,20 +143,22 @@
                     <th class="px-5 py-3 font-medium text-right">Qty</th>
                     <th class="px-5 py-3 font-medium">Prod. Date</th>
                     <th class="px-5 py-3 font-medium">ETA</th>
-                    <th class="px-5 py-3 font-medium">ผลกับ Stock</th>
+                    <th class="px-5 py-3 font-medium">รอบ</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100 bg-white">
                   <% rows.each do |forecast| %>
                     <% previous_forecast = @previous_feed_lookup[import_comparison_key(forecast)] %>
-                    <% feed_badge_label, feed_badge_classes = import_feed_badge(forecast, force_new: @first_import_presentation, previous_forecast: previous_forecast) %>
+                    <% result_label = import_result_label(forecast, force_new: @first_import_presentation, previous_forecast: previous_forecast) %>
+                    <% result_classes = import_result_badge_classes(result_label) %>
+                    <% round_label, round_classes = import_source_badge(forecast) %>
                     <tr class="hover:bg-stone-50/80">
                       <td class="px-5 py-4">
                         <div class="font-medium text-stone-900"><%= forecast.model_label || forecast.model_code %></div>
                         <div class="text-stone-500"><%= [forecast.model_code, forecast.grade].compact.join(" • ").presence || "-" %></div>
                         <div class="mt-2">
-                          <span class="<%= feed_badge_classes %> inline-flex items-center rounded-full px-3 py-1 text-xs font-medium">
-                            <%= feed_badge_label %>
+                          <span class="<%= result_classes %> inline-flex items-center rounded-full px-3 py-1 text-xs font-medium">
+                            <%= result_label %>
                           </span>
                         </div>
                       </td>
@@ -166,13 +172,9 @@
                       <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= forecast.estimated_production_date&.strftime("%d %b %Y") || "-" %></td>
                       <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= forecast.estimated_arrival_date&.strftime("%d %b %Y") || "-" %></td>
                       <td class="px-5 py-4">
-                        <% if forecast.stock_plan_item&.status_incoming? %>
-                          <span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800">กำลังเข้า</span>
-                        <% elsif forecast.stock_plan_item&.status_ordered? %>
-                          <span class="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-800">สั่งเข้าแล้ว</span>
-                        <% else %>
-                          <span class="inline-flex items-center rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-700">รอเชื่อมกับ stock</span>
-                        <% end %>
+                        <span class="<%= round_classes %> inline-flex items-center rounded-full px-3 py-1 text-xs font-medium">
+                          <%= round_label.delete_prefix("จาก ") %>
+                        </span>
                       </td>
                     </tr>
                   <% end %>

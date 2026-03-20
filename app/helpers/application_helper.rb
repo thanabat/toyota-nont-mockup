@@ -204,6 +204,49 @@ module ApplicationHelper
     [ "Updated from #{report_label}", "bg-amber-100 text-amber-800" ]
   end
 
+  def import_source_badge(forecast)
+    report_label = forecast.source_report_type.to_s.titleize
+    [ "จาก #{report_label}", "bg-stone-100 text-stone-700" ]
+  end
+
+  def import_tracking_incoming?(forecast)
+    forecast.quantity_available.present? &&
+      forecast.estimated_production_date.present? &&
+      forecast.estimated_arrival_date.present?
+  end
+
+  def import_tracking_status_badge(forecast)
+    if import_tracking_incoming?(forecast)
+      [ "กำลังเข้า", "bg-emerald-100 text-emerald-800" ]
+    else
+      [ "สั่งเข้าแล้ว", "bg-sky-100 text-sky-800" ]
+    end
+  end
+
+  def import_result_label(forecast, force_new: false, previous_forecast: nil)
+    label, = import_feed_badge(forecast, force_new: force_new, previous_forecast: previous_forecast)
+
+    case label
+    when /\ANew/
+      "สร้างรายการใหม่"
+    when /\AUpdated/
+      "อัปเดตข้อมูล"
+    else
+      "ไม่มีการเปลี่ยนแปลง"
+    end
+  end
+
+  def import_result_badge_classes(result_label)
+    case result_label
+    when "สร้างรายการใหม่"
+      "bg-violet-100 text-violet-800"
+    when "อัปเดตข้อมูล"
+      "bg-amber-100 text-amber-800"
+    else
+      "bg-stone-100 text-stone-700"
+    end
+  end
+
   private
 
   def import_business_signature(forecast)

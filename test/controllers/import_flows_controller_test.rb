@@ -63,6 +63,9 @@ class ImportFlowsControllerTest < ActionDispatch::IntegrationTest
     assert_select "p", /ยังไม่มีข้อมูลนำเข้าใน session นี้/
     assert_select "div", /กดนำเข้าไฟล์ครั้งแรกเพื่อเริ่มสร้างข้อมูลใน flow นี้/
     assert_select "p", /ยังไม่มีข้อมูลนำเข้า/
+    assert_select "p", /สร้างใหม่/
+    assert_select "p", /อัปเดตข้อมูล/
+    assert_select "p", /ไม่มีการเปลี่ยนแปลง/
   end
 
   test "should run file import for current report type" do
@@ -83,8 +86,13 @@ class ImportFlowsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "p", /ตรวจพบเป็น Monthly feed/
     assert_select "h3", /FC-MONTHLY/
-    assert_select "span", /New from Monthly/
-    assert_select "span", text: /Updated from Monthly/, count: 0
+    assert_select "th", /รอบ/
+    assert_select "span", /สร้างรายการใหม่/
+    assert_select "span", text: /อัปเดตข้อมูล/, count: 0
+    assert_select "span", /Monthly/
+    assert_select "p", /สร้างใหม่/
+    assert_select "p", /อัปเดตข้อมูล/
+    assert_select "p", /ไม่มีการเปลี่ยนแปลง/
   end
 
   test "should compare weekly import against the previous monthly file" do
@@ -95,7 +103,8 @@ class ImportFlowsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "p", /ตรวจพบเป็น Weekly feed/
-    assert_select "span", /Updated from Weekly/
+    assert_select "span", /อัปเดตข้อมูล/
+    assert_select "span", /Weekly/
     assert_select "td", /Camry HEV Premium Luxury/
   end
 end

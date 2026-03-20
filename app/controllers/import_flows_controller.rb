@@ -18,14 +18,14 @@ class ImportFlowsController < ApplicationController
       @import_rows = SupplyForecast.active_feed.where(source_report_type: @current_report_type).order(:source_batch_key, :source_line_no).limit(8)
       @import_batches = @import_rows.group_by(&:source_batch_key)
       @previous_feed_lookup = previous_feed_lookup(@previous_report_type)
-      @ordered_count = @import_rows.count { |forecast| forecast.stock_plan_item&.status_ordered? }
-      @incoming_count = @import_rows.count { |forecast| forecast.stock_plan_item&.status_incoming? }
+      build_import_result_summary
     else
       @import_rows = []
       @import_batches = {}
       @previous_feed_lookup = {}
-      @ordered_count = 0
-      @incoming_count = 0
+      @new_count = 0
+      @updated_count = 0
+      @unchanged_count = 0
     end
   end
 
@@ -126,6 +126,30 @@ class ImportFlowsController < ApplicationController
 
     SupplyForecast.active_feed.where(source_report_type: report_type).index_by do |forecast|
       view_context.import_comparison_key(forecast)
+    end
+  end
+
+  def build_import_result_summary
+    @new_count = 0
+    @updated_count = 0
+    @unchanged_count = 0
+
+    @import_rows.each do |forecast|
+      previous_forecast = @previous_feed_lookup[view_context.import_comparison_key(forecast)]
+      result_label = view_context.import_result_label(
+        forecast,
+        force_new: @first_import_presentation,
+        previous_forecast: previous_forecast
+      )
+
+      case result_label
+      when "สร้างรายการใหม่"
+        @new_count += 1
+      when "อัปเดตข้อมูล"
+        @updated_count += 1
+      else
+        @unchanged_count += 1
+      end
     end
   end
 end

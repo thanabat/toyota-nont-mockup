@@ -58,9 +58,12 @@ class DemoForecastBaselineService
       note: "Baseline plan for weekly showroom requests"
     )
 
-    create_plan_item(primary_plan, "FC-DAILY-20260319-001-L1", 2, "Ready for showroom launch")
-    create_plan_item(secondary_plan, "FC-WEEKLY-20260318-001-L3", 1, "Requested by showroom Bang Bua Thong")
-    create_plan_item(secondary_plan, "FC-MONTHLY-20260315-001-L1", 1, "Early hold for hybrid lead")
+    create_plan_item(primary_plan, "FC-MONTHLY-20260315-001-L1", 1, "Monthly baseline hold for Corolla Cross")
+    create_plan_item(primary_plan, "FC-MONTHLY-20260315-001-L5", 1, "Monthly baseline hold for Camry")
+    create_plan_item(secondary_plan, "FC-WEEKLY-20260318-001-L3", 1, "Weekly update for Fortuner")
+    create_plan_item(secondary_plan, "FC-WEEKLY-20260318-001-L5", 1, "Weekly update for Camry")
+    create_plan_item(primary_plan, "FC-DAILY-20260319-001-L1", 2, "Daily launch allocation for Corolla Cross")
+    create_plan_item(primary_plan, "FC-DAILY-20260319-001-L3", 1, "Daily launch allocation for Fortuner")
 
     changed_forecast = SupplyForecast.find_by!(source_key: "FC-WEEKLY-20260318-001-L3")
     auto_update_run = sync_runs.fetch(:auto_update_run)
@@ -113,7 +116,7 @@ class DemoForecastBaselineService
       note: "ใช้เป็นตัวเลือกรถพร้อมเข้าล็อตด่วน"
     )
     create_sales_interest(
-      "FC-WEEKLY-20260318-001-L3",
+      "FC-DAILY-20260319-001-L3",
       sales_name: "นวพล",
       branch_name: "โชว์รูมปากเกร็ด",
       status: :watching,
@@ -414,7 +417,7 @@ class DemoForecastBaselineService
       grade: nil,
       color_code: "1J9",
       color_name: "Precious Metal",
-      quantity_available: nil,
+      quantity_available: 3,
       estimated_production_date: nil,
       estimated_arrival_date: nil,
       source_generated_on: Date.new(2026, 3, 15)
