@@ -1,21 +1,21 @@
 <% content_for :title, "Import File Flow" %>
 
 <section class="space-y-8">
-  <div class="app-soft-card rounded-3xl border p-8 shadow-sm">
-    <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-      <div>
-        <p class="app-eyebrow text-sm font-medium uppercase tracking-[0.2em]">Import File Flow</p>
-        <h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-900">นำเข้าไฟล์อัปเดตจากระบบบริษัทแม่</h1>
-        <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
-          แนวคิดนี้จำลองการที่ฝ่ายจัดสรร export คำสั่งซื้อหรือไฟล์อัปเดตจากระบบแม่ แล้วนำข้อมูล daily, weekly, monthly เข้าระบบเรา
-          เพื่อให้ระบบของเราสร้างหรืออัปเดตรายการสั่งซื้อที่ต้องติดตามต่อจากไฟล์ล่าสุดโดยอัตโนมัติ
-        </p>
-      </div>
+  <div class="space-y-3 px-1">
+    <p class="app-eyebrow text-xs font-semibold uppercase tracking-[0.24em] text-[#e20712]">Import File Flow</p>
+    <h1 class="text-3xl font-semibold tracking-tight text-stone-900">นำเข้าไฟล์อัปเดตจากระบบบริษัทแม่</h1>
+    <p class="max-w-4xl text-sm leading-6 text-stone-500">
+      แนวคิดนี้จำลองการที่ฝ่ายจัดสรร export คำสั่งซื้อหรือไฟล์อัปเดตจากระบบแม่ แล้วนำข้อมูล daily, weekly, monthly เข้าระบบเรา
+      เพื่อให้ระบบของเราสร้างหรืออัปเดตรายการสั่งซื้อที่ต้องติดตามต่อจากไฟล์ล่าสุดโดยอัตโนมัติ
+    </p>
+  </div>
 
+  <div class="app-soft-card rounded-3xl border p-8 shadow-sm">
+    <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-end">
       <%= form_with url: import_flow_import_path,
                     method: :post,
                     html: { multipart: true },
-                    class: "flex w-full max-w-2xl flex-col gap-3 lg:items-end",
+                    class: "flex w-full flex-col gap-3",
                     data: {
                       controller: "sync-feedback import-file-picker",
                       action: "turbo:submit-start->sync-feedback#start turbo:submit-end->sync-feedback#reset",
