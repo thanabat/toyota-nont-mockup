@@ -31,7 +31,8 @@ class StockPlanItem < ApplicationRecord
 
   def sales_interest_summary_status
     return :none if sales_interests.empty?
-    return :customer_waiting if sales_interests.any?(&:status_customer_waiting?)
+    return :customer_reserved if sales_interests.any?(&:status_customer_reserved?)
+    return :prospective_customer if sales_interests.any?(&:status_prospective_customer?)
 
     :watching
   end

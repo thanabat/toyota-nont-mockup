@@ -105,8 +105,8 @@ class DemoForecastBaselineService
       "FC-DAILY-20260319-001-L1",
       sales_name: "กฤตภาส",
       branch_name: "โชว์รูมบางบัวทอง",
-      status: :customer_waiting,
-      note: "มีลูกค้ารอ Corolla Cross สีนี้อยู่"
+      status: :prospective_customer,
+      note: "มีลูกค้ามุ่งหวัง Corolla Cross สีนี้อยู่"
     )
     create_sales_interest(
       "FC-DAILY-20260319-001-L1",

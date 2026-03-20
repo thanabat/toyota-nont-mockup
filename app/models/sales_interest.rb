@@ -1,5 +1,5 @@
 class SalesInterest < ApplicationRecord
-  enum :status, { watching: 0, customer_waiting: 1 }, prefix: true
+  enum :status, { watching: 0, prospective_customer: 1, customer_reserved: 2 }, prefix: true
 
   belongs_to :stock_plan_item
 

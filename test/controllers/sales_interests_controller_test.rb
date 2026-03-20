@@ -56,13 +56,13 @@ class SalesInterestsControllerTest < ActionDispatch::IntegrationTest
           stock_plan_item_id: @stock_plan_item.id,
           sales_name: "กฤตภาส",
           branch_name: "โชว์รูมบางบัวทอง",
-          status: "customer_waiting",
-          note: "มีลูกค้ารอสีนี้อยู่"
+          status: "prospective_customer",
+          note: "มีลูกค้ามุ่งหวังสีนี้อยู่"
         }
       }
     end
 
     assert_redirected_to stock_orders_url(tab: :incoming)
-    assert_equal "customer_waiting", SalesInterest.last.status
+    assert_equal "prospective_customer", SalesInterest.last.status
   end
 end

@@ -108,7 +108,9 @@ class StockOrdersController < ApplicationController
       @active_tab = "incoming"
       @stock_items = @all_stock_items.select(&:status_incoming?)
       @sales_followed_count = @stock_items.count { |item| item.sales_interests.any? }
-      @sales_customer_waiting_count = @stock_items.count { |item| item.sales_interests.any?(&:status_customer_waiting?) }
+      @sales_customer_waiting_count = @stock_items.count do |item|
+        item.sales_interests.any?(&:status_prospective_customer?) || item.sales_interests.any?(&:status_customer_reserved?)
+      end
     else
       @stock_items = case @active_tab
       when "ordered"

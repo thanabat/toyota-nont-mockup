@@ -59,7 +59,7 @@ module ApplicationHelper
 
   def workspace_mode_description
     if sales_mode?
-      "โหมดนี้เน้นการมองเห็น incoming stock, รถที่มีลูกค้ารอ และการติดตามรายการที่ฝ่ายขายสนใจ"
+      "โหมดนี้เน้นการมองเห็น incoming stock, รถที่มีลูกค้ามุ่งหวังหรือจองแล้ว และการติดตามรายการที่ฝ่ายขายสนใจ"
     else
       "โหมดนี้เน้นการเลือก forecast, สั่งเข้า stock และติดตามการไหลของข้อมูลจากบริษัทแม่"
     end
@@ -180,7 +180,10 @@ module ApplicationHelper
   end
 
   def sales_interest_status_label(interest)
-    interest.status_customer_waiting? ? "มีลูกค้ารอ" : "กำลังติดตาม"
+    return "ลูกค้าจอง" if interest.status_customer_reserved?
+    return "ลูกค้ามุ่งหวัง" if interest.status_prospective_customer?
+
+    "กำลังติดตาม"
   end
 
   def import_comparison_key(forecast)
