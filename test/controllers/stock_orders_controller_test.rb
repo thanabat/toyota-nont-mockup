@@ -84,9 +84,13 @@ class StockOrdersControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "p", /Sales Workspace/
-    assert_select "h2", /รายการที่กลายเป็น Stock กำลังเข้า/
+    assert_select "h1", /รถที่กำลังเข้า/
+    assert_select "h2", /รายการรถที่ฝ่ายขายดูได้ตอนนี้/
     assert_select "td", /Hilux Revo Prerunner/
-    assert_select "th", /ฝ่ายขาย/
+    assert_select "th", /เซลล์ที่ติดตาม/
+    assert_select "a", text: /ทั้งหมด/, count: 0
+    assert_select "th", text: /รายการสั่งเข้า Stock/, count: 0
+    assert_select "button", /ติดตาม/
   end
 
   test "should get stock order detail" do

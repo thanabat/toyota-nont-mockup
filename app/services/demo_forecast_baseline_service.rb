@@ -6,6 +6,7 @@ class DemoForecastBaselineService
   end
 
   def call
+    SalesInterest.delete_all
     StockPlanItem.delete_all
     StockPlan.delete_all
     SupplyForecast.delete_all
@@ -80,6 +81,8 @@ class DemoForecastBaselineService
       },
       forecast_sync_run: auto_update_run
     )
+
+    seed_sales_interests
   end
 
   private
@@ -91,6 +94,44 @@ class DemoForecastBaselineService
       supply_forecast: forecast,
       selected_quantity: quantity,
       note: note
+    )
+  end
+
+  def seed_sales_interests
+    create_sales_interest(
+      "FC-MONTHLY-20260315-001-L1",
+      sales_name: "กฤตภาส",
+      branch_name: "โชว์รูมบางบัวทอง",
+      status: :customer_waiting,
+      note: "มีลูกค้ารอ Corolla Cross HEV สีแดง"
+    )
+    create_sales_interest(
+      "FC-MONTHLY-20260315-001-L1",
+      sales_name: "ชนินทร์",
+      branch_name: "โชว์รูมรัตนาธิเบศร์",
+      status: :watching,
+      note: "ใช้เป็นตัวเลือกแทนกลุ่มลูกค้า SUV ไฮบริด"
+    )
+    create_sales_interest(
+      "FC-WEEKLY-20260318-001-L3",
+      sales_name: "นวพล",
+      branch_name: "โชว์รูมปากเกร็ด",
+      status: :watching,
+      note: "ติดตาม Fortuner สีนี้ไว้สำหรับลูกค้าเดิม"
+    )
+  end
+
+  def create_sales_interest(source_key, sales_name:, branch_name:, status:, note:)
+    forecast = SupplyForecast.find_by!(source_key: source_key)
+    item = forecast.stock_plan_item
+    return if item.blank?
+
+    SalesInterest.create!(
+      stock_plan_item: item,
+      sales_name:,
+      branch_name:,
+      status:,
+      note:
     )
   end
 

@@ -76,6 +76,29 @@ module ApplicationHelper
     end
   end
 
+  def prototype_flow_title
+    import_file_flow? ? "Import File Flow" : "Auto Sync Flow"
+  end
+
+  def prototype_flow_description
+    if import_file_flow?
+      "ฝ่ายจัดสรร export ไฟล์จากระบบบริษัทแม่ แล้วนำเข้า daily, weekly, monthly เข้าระบบเราเพื่ออัปเดต stock ต่ออัตโนมัติ"
+    else
+      "ข้อมูลจากบริษัทแม่ไหลเข้ามาในระบบเราแบบ sync แล้วฝ่ายจัดสรรใช้ต่อจาก forecast ไปยัง stock workspace"
+    end
+  end
+
+  def prototype_flow_switch_classes(flow)
+    active = current_prototype_flow == flow.to_s
+    base = "inline-flex items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition"
+
+    if active
+      "#{base} app-btn-primary"
+    else
+      "#{base} border border-stone-200 bg-white text-stone-500 hover:bg-stone-50 hover:text-stone-900"
+    end
+  end
+
   def sidebar_icon(name)
     paths = case name
     when :home
@@ -147,15 +170,17 @@ module ApplicationHelper
     incoming_stock_arrival_label(item)
   end
 
-  def sales_interest_badge(status)
-    case status.to_sym
-    when :customer_waiting
-      [ "มีลูกค้ารอ", "bg-amber-100 text-amber-800" ]
-    when :watching
-      [ "ฝ่ายขายกำลังติดตาม", "bg-violet-100 text-violet-800" ]
-    else
-      [ "ยังไม่มีฝ่ายขายติดตาม", "bg-stone-100 text-stone-500" ]
-    end
+  def sales_interest_count_value(item)
+    item.sales_interests.select(:sales_name).map(&:sales_name).compact.uniq.count
+  end
+
+  def sales_interest_count_display(item)
+    count = sales_interest_count_value(item)
+    count.zero? ? "ยังไม่มีเซลล์ติดตาม" : count
+  end
+
+  def sales_interest_status_label(interest)
+    interest.status_customer_waiting? ? "มีลูกค้ารอ" : "กำลังติดตาม"
   end
 
   private
