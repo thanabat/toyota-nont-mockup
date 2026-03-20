@@ -144,7 +144,8 @@
                 </thead>
                 <tbody class="divide-y divide-stone-100 bg-white">
                   <% rows.each do |forecast| %>
-                    <% feed_badge_label, feed_badge_classes = import_feed_badge(forecast, force_new: @first_import_presentation) %>
+                    <% previous_forecast = @previous_feed_lookup[import_comparison_key(forecast)] %>
+                    <% feed_badge_label, feed_badge_classes = import_feed_badge(forecast, force_new: @first_import_presentation, previous_forecast: previous_forecast) %>
                     <tr class="hover:bg-stone-50/80">
                       <td class="px-5 py-4">
                         <div class="font-medium text-stone-900"><%= forecast.model_label || forecast.model_code %></div>

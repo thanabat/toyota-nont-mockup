@@ -12,15 +12,18 @@ class ImportFlowsController < ApplicationController
     @next_report_type = next_report_type
     @latest_import_run = latest_import_run
     @first_import_presentation = session[:first_import_badge_report_type] == @current_report_type
+    @previous_report_type = previous_report_type(@current_report_type)
 
     if @import_initialized
       @import_rows = SupplyForecast.active_feed.where(source_report_type: @current_report_type).order(:source_batch_key, :source_line_no).limit(8)
       @import_batches = @import_rows.group_by(&:source_batch_key)
+      @previous_feed_lookup = previous_feed_lookup(@previous_report_type)
       @ordered_count = @import_rows.count { |forecast| forecast.stock_plan_item&.status_ordered? }
       @incoming_count = @import_rows.count { |forecast| forecast.stock_plan_item&.status_incoming? }
     else
       @import_rows = []
       @import_batches = {}
+      @previous_feed_lookup = {}
       @ordered_count = 0
       @incoming_count = 0
     end
@@ -109,5 +112,20 @@ class ImportFlowsController < ApplicationController
     return nil unless import_initialized?
 
     ForecastSyncRun.status_completed.where(source_report_type: @current_report_type).order(started_at: :desc).first
+  end
+
+  def previous_report_type(report_type)
+    index = IMPORT_SEQUENCE.index(report_type)
+    return nil if index.blank? || index.zero?
+
+    IMPORT_SEQUENCE[index - 1]
+  end
+
+  def previous_feed_lookup(report_type)
+    return {} if report_type.blank?
+
+    SupplyForecast.active_feed.where(source_report_type: report_type).index_by do |forecast|
+      view_context.import_comparison_key(forecast)
+    end
   end
 end

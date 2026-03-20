@@ -183,22 +183,39 @@ module ApplicationHelper
     interest.status_customer_waiting? ? "มีลูกค้ารอ" : "กำลังติดตาม"
   end
 
-  def import_feed_badge(forecast, force_new: false)
+  def import_comparison_key(forecast)
+    [
+      forecast.model_code.presence || forecast.model_label,
+      forecast.color_code.presence || forecast.color_name
+    ].join("|")
+  end
+
+  def import_feed_badge(forecast, force_new: false, previous_forecast: nil)
     report_label = forecast.source_report_type.to_s.titleize
 
     return [ "New from #{report_label}", "bg-violet-100 text-violet-800" ] if force_new
+    return [ "New from #{report_label}", "bg-violet-100 text-violet-800" ] if previous_forecast.blank?
 
-    case forecast.last_sync_change_kind.to_sym
-    when :updated
-      [ "Updated from #{report_label}", "bg-amber-100 text-amber-800" ]
-    when :inserted
-      [ "New from #{report_label}", "bg-violet-100 text-violet-800" ]
-    else
-      [ "No change", "bg-stone-100 text-stone-700" ]
-    end
+    current_signature = import_business_signature(forecast)
+    previous_signature = import_business_signature(previous_forecast)
+
+    return [ "No change", "bg-stone-100 text-stone-700" ] if current_signature == previous_signature
+
+    [ "Updated from #{report_label}", "bg-amber-100 text-amber-800" ]
   end
 
   private
+
+  def import_business_signature(forecast)
+    [
+      forecast.model_label,
+      forecast.grade,
+      forecast.color_name,
+      forecast.quantity_available,
+      forecast.estimated_production_date,
+      forecast.estimated_arrival_date
+    ].map(&:to_s)
+  end
 
   def forecast_color_style_for(forecast)
     code = forecast.color_code.to_s.upcase

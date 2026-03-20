@@ -86,4 +86,16 @@ class ImportFlowsControllerTest < ActionDispatch::IntegrationTest
     assert_select "span", /New from Monthly/
     assert_select "span", text: /Updated from Monthly/, count: 0
   end
+
+  test "should compare weekly import against the previous monthly file" do
+    patch prototype_flow_url, params: { flow: :import_file, return_to: "/import_flow" }
+    post import_flow_import_url
+    post import_flow_import_url
+    follow_redirect!
+
+    assert_response :success
+    assert_select "p", /ตรวจพบเป็น Weekly feed/
+    assert_select "span", /Updated from Weekly/
+    assert_select "td", /Camry HEV Premium Luxury/
+  end
 end

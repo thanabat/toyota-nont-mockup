@@ -1,21 +1,25 @@
 class ForecastManualSyncService
   REPORT_TYPES = %w[daily weekly monthly].freeze
+  PREVIOUS_REPORT_TYPE = {
+    "weekly" => "monthly",
+    "daily" => "weekly"
+  }.freeze
 
   NEW_LINE_LIBRARY = {
     "daily" => [
-      { model_code: "ATIV-HEV", model_label: "Yaris Ativ HEV Premium", grade: "Premium", color_code: "2SZ", color_name: "Dark Turquoise" },
-      { model_code: "RAIZE", model_label: "Raize Turbo", grade: "Turbo", color_code: "W25", color_name: "White Pearl" },
-      { model_code: "VIOS", model_label: "Vios Smart Entry", grade: "Smart Entry", color_code: "R89", color_name: "Red Mica Metallic" }
+      { model_code: "COROLLA-CROSS", model_label: "Corolla Cross HEV Premium", grade: "HEV Premium", color_code: "1L0", color_name: "Attitude Black Mica" },
+      { model_code: "FORTUNER", model_label: "Fortuner Legender", grade: "2.8 Legender 4WD", color_code: "089", color_name: "Platinum White Pearl" },
+      { model_code: "CAMRY", model_label: "Camry HEV Premium Luxury", grade: "Premium Luxury", color_code: "1L0", color_name: "Attitude Black Mica" }
     ],
     "weekly" => [
       { model_code: "HILUX-ROCCO", model_label: "Hilux Revo Rocco 4x4", grade: "Rocco", color_code: "B20", color_name: "Attitude Black Mica" },
-      { model_code: "FORTUNER-LEGENDER", model_label: "Fortuner Legender", grade: "Legender", color_code: "W29", color_name: "Platinum White Pearl" },
-      { model_code: "INNOVA-ZENIX-HV", model_label: "Innova Zenix Hybrid", grade: "Hybrid Smart", color_code: "G58", color_name: "Grey Metallic" }
+      { model_code: "FORTUNER", model_label: "Fortuner Legender", grade: "2.8 Legender 4WD", color_code: "089", color_name: "Platinum White Pearl" },
+      { model_code: "COROLLA-CROSS", model_label: "Corolla Cross HEV Premium", grade: "HEV Premium", color_code: "1L0", color_name: "Attitude Black Mica" }
     ],
     "monthly" => [
-      { model_code: "CAMRY-HEV", model_label: "Camry HEV Premium Luxury", grade: "Premium Luxury", color_code: "P19", color_name: "Precious Metal" },
-      { model_code: "BZ4X", model_label: "bZ4X AWD", grade: "AWD", color_code: "B21", color_name: "Black / Precious Metal" },
-      { model_code: "ALPHARD", model_label: "Alphard Executive Lounge", grade: "Executive Lounge", color_code: "P25", color_name: "Precious Leo Black" }
+      { model_code: "FORTUNER", model_label: "Fortuner Legender", grade: nil, color_code: "089", color_name: "Platinum White Pearl" },
+      { model_code: "HILUX-REVO", model_label: "Hilux Revo Prerunner", grade: nil, color_code: "040", color_name: "Super White" },
+      { model_code: "CAMRY", model_label: "Camry HEV Premium Luxury", grade: nil, color_code: "1L0", color_name: "Attitude Black Mica" }
     ]
   }.freeze
 
@@ -167,6 +171,16 @@ class ForecastManualSyncService
   end
 
   def apply_report_completeness!(payload, existing_forecast:, index:, sync_sequence:)
+    previous_forecast = previous_report_lookup[comparison_key_for(payload)]
+
+    if previous_forecast.present? && carry_forward_from_previous_report?(index, sync_sequence)
+      payload[:grade] = previous_forecast.grade
+      payload[:quantity_available] = previous_forecast.quantity_available
+      payload[:estimated_production_date] = previous_forecast.estimated_production_date
+      payload[:estimated_arrival_date] = previous_forecast.estimated_arrival_date
+      return payload
+    end
+
     if existing_forecast.present? && business_snapshot_unchanged?(index, sync_sequence)
       payload[:grade] = existing_forecast.grade
       payload[:quantity_available] = existing_forecast.quantity_available
@@ -206,6 +220,30 @@ class ForecastManualSyncService
 
   def business_snapshot_unchanged?(index, sync_sequence)
     (sync_sequence + index).modulo(3) == 1
+  end
+
+  def carry_forward_from_previous_report?(index, sync_sequence)
+    PREVIOUS_REPORT_TYPE.key?(@report_type) && (sync_sequence + index).modulo(4) == 0
+  end
+
+  def previous_report_lookup
+    @previous_report_lookup ||= begin
+      previous_type = PREVIOUS_REPORT_TYPE[@report_type]
+      if previous_type.blank?
+        {}
+      else
+        SupplyForecast.active_feed.where(source_report_type: previous_type).index_by do |forecast|
+          comparison_key_for(forecast)
+        end
+      end
+    end
+  end
+
+  def comparison_key_for(record)
+    model_code = record.is_a?(Hash) ? record[:model_code] : record.model_code
+    color_code = record.is_a?(Hash) ? record[:color_code] : record.color_code
+
+    [ model_code, color_code ].join("|")
   end
 
   def batch_key_for(sequence)
