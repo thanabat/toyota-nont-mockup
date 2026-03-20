@@ -13,6 +13,7 @@ Rails.application.routes.draw do
   root "home#index"
   patch "workspace_mode", to: "workspace_modes#update", as: :workspace_mode
   patch "prototype_flow", to: "prototype_flows#update", as: :prototype_flow
+  post "demo_reset", to: "demo_resets#create", as: :demo_reset
   resources :forecasts, only: :index do
     post :sync, on: :collection
   end

@@ -119,6 +119,13 @@
                                   class: workspace_mode_switch_classes(:sales) %>
                   </div>
                 </div>
+                <div class="mt-3 border-t border-stone-200 pt-3">
+                  <%= button_to "Reset Demo",
+                                demo_reset_path,
+                                method: :post,
+                                params: { return_to: request.fullpath },
+                                class: "inline-flex w-full items-center justify-center rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-stone-600 transition hover:bg-stone-50 hover:text-stone-900" %>
+                </div>
               </div>
             </div>
           </aside>

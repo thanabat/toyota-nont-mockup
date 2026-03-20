@@ -1,7 +1,5 @@
 <% content_for :title, "Import File Flow" %>
 
-<% report_tabs = [["daily", "Daily"], ["weekly", "Weekly"], ["monthly", "Monthly"]] %>
-
 <section class="space-y-8">
   <div class="app-soft-card rounded-3xl border p-8 shadow-sm">
     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -14,21 +12,51 @@
         </p>
       </div>
 
-      <%= form_with url: import_flow_import_path(report_type: @current_report_type),
+      <%= form_with url: import_flow_import_path,
                     method: :post,
-                    class: "flex flex-wrap items-center gap-3",
+                    html: { multipart: true },
+                    class: "flex w-full max-w-2xl flex-col gap-3 lg:items-end",
                     data: {
-                      controller: "sync-feedback",
+                      controller: "sync-feedback import-file-picker",
                       action: "turbo:submit-start->sync-feedback#start turbo:submit-end->sync-feedback#reset",
-                      sync_feedback_message_value: "กำลังนำเข้าไฟล์ #{@current_report_type.titleize} และอัปเดต stock workspace..."
+                      sync_feedback_message_value: "กำลังนำเข้าไฟล์และอัปเดต stock workspace..."
                     } do %>
-        <button type="submit"
-                data-sync-feedback-target="button"
-                data-turbo-submits-with="กำลังนำเข้าไฟล์..."
-                class="app-btn-primary inline-flex cursor-pointer items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium transition disabled:cursor-wait disabled:bg-stone-500">
-          <span class="inline-flex h-2.5 w-2.5 rounded-full bg-white/80"></span>
-          <span>นำเข้าไฟล์ <%= @current_report_type.titleize %></span>
-        </button>
+        <div class="w-full rounded-3xl border border-stone-200 bg-stone-50 p-4">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm font-medium text-stone-900">เลือกไฟล์อัปเดตจากเครื่อง</p>
+              <p class="mt-1 text-sm text-stone-500">ใช้ไฟล์อะไรก็ได้เพื่อจำลองการ import จริง แล้วระบบจะอัปเดตข้อมูล demo ให้เหมือนรับไฟล์เข้ามาแล้ว</p>
+            </div>
+
+            <button type="button"
+                    data-action="import-file-picker#browse"
+                    class="app-btn-ghost inline-flex items-center justify-center rounded-2xl px-4 py-3 text-sm font-medium transition">
+              Browse file
+            </button>
+          </div>
+
+          <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="min-w-0 rounded-2xl border border-dashed border-stone-300 bg-white px-4 py-3 text-sm">
+              <input type="file"
+                     name="import_file"
+                     class="hidden"
+                     accept=".csv,.xlsx,.xls,.txt"
+                     data-import-file-picker-target="input"
+                     data-action="change->import-file-picker#selected">
+              <span class="block truncate text-stone-500" data-import-file-picker-target="fileName">ยังไม่ได้เลือกไฟล์</span>
+            </div>
+
+            <button type="submit"
+                    data-sync-feedback-target="button"
+                    data-import-file-picker-target="submit"
+                    data-turbo-submits-with="กำลังนำเข้าไฟล์..."
+                    class="app-btn-primary inline-flex cursor-pointer items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium transition disabled:cursor-not-allowed disabled:bg-stone-400">
+              <span class="inline-flex h-2.5 w-2.5 rounded-full bg-white/80"></span>
+              <span>นำเข้าไฟล์</span>
+            </button>
+          </div>
+        </div>
+
         <div data-sync-feedback-target="panel" class="hidden rounded-2xl border border-[#fecdd3] bg-[#fff1f2] px-4 py-3 text-sm text-[#be123c]">
           <div class="flex items-center gap-3">
             <span class="inline-flex h-3 w-3 animate-pulse rounded-full bg-[#e20712]"></span>
@@ -37,25 +65,15 @@
         </div>
       <% end %>
     </div>
-
-    <div class="mt-6 flex flex-wrap items-center gap-3 border-t border-stone-200 pt-5">
-      <% report_tabs.each do |tab_key, label| %>
-        <% classes = @current_report_type == tab_key ? "app-tab-active" : "app-tab-inactive" %>
-        <%= link_to import_flow_path(report_type: tab_key),
-                    class: "#{classes} inline-flex items-center rounded-full px-4 py-2 text-sm font-medium transition" do %>
-          <span><%= label %></span>
-        <% end %>
-      <% end %>
-    </div>
   </div>
 
   <div class="grid gap-4 md:grid-cols-4">
     <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
-      <p class="text-sm text-stone-500">ไฟล์ที่กำลังดู</p>
+      <p class="text-sm text-stone-500"><%= @import_initialized ? "ชุดข้อมูลล่าสุด" : "ไฟล์แรกที่จะนำเข้า" %></p>
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @current_report_type.titleize %></p>
     </div>
     <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
-      <p class="text-sm text-stone-500">Rows ในไฟล์ล่าสุด</p>
+      <p class="text-sm text-stone-500"><%= @import_initialized ? "Rows ในไฟล์ล่าสุด" : "Rows ที่แสดงแล้ว" %></p>
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @import_rows.size %></p>
     </div>
     <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
@@ -74,21 +92,28 @@
         <h2 class="text-lg font-semibold text-stone-900">ข้อมูลจากไฟล์ล่าสุด</h2>
         <p class="mt-1 text-sm text-stone-500">
           <% if @latest_import_run.present? %>
-            Imported ล่าสุดเมื่อ <%= @latest_import_run.started_at.strftime("%d %b %Y %H:%M") %>
+            Imported ล่าสุดเมื่อ <%= @latest_import_run.started_at.strftime("%d %b %Y %H:%M") %> • ตรวจพบเป็น <%= @current_report_type.titleize %> feed
           <% else %>
-            ยังไม่มีประวัติการนำเข้าในชุดข้อมูลนี้
+            ยังไม่มีข้อมูลนำเข้าใน session นี้ ระบบจะเริ่มด้วย <%= @next_report_type.titleize %> feed เมื่อกดนำเข้าไฟล์ครั้งแรก
           <% end %>
         </p>
       </div>
 
       <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
-        ไฟล์ 1 ชุดอาจมีหลาย line ตาม model, color และ quantity ในรอบเดียวกัน
+        <%= if @import_initialized
+              "import ครั้งถัดไปจะหมุนไปจำลองเป็น #{@next_report_type.titleize} feed"
+            else
+              "กดนำเข้าไฟล์ครั้งแรกเพื่อเริ่มสร้างข้อมูลใน flow นี้"
+            end %>
       </div>
     </div>
 
     <% if @import_batches.blank? %>
       <div class="px-4 py-10 text-center">
-        <p class="text-base font-medium text-stone-900">ยังไม่มีข้อมูลในไฟล์ชุดนี้</p>
+        <p class="text-base font-medium text-stone-900">ยังไม่มีข้อมูลนำเข้า</p>
+        <p class="mt-2 text-sm text-stone-500">
+          เลือกไฟล์อะไรก็ได้แล้วกดนำเข้าไฟล์ เพื่อเริ่มต้นด้วย <%= @next_report_type.titleize %> feed และให้ระบบสร้างข้อมูล demo หลัง import ครั้งแรก
+        </p>
       </div>
     <% else %>
       <div class="mt-6 space-y-5">
@@ -119,10 +144,16 @@
                 </thead>
                 <tbody class="divide-y divide-stone-100 bg-white">
                   <% rows.each do |forecast| %>
+                    <% feed_badge_label, feed_badge_classes = import_feed_badge(forecast, force_new: @first_import_presentation) %>
                     <tr class="hover:bg-stone-50/80">
                       <td class="px-5 py-4">
                         <div class="font-medium text-stone-900"><%= forecast.model_label || forecast.model_code %></div>
                         <div class="text-stone-500"><%= [forecast.model_code, forecast.grade].compact.join(" • ").presence || "-" %></div>
+                        <div class="mt-2">
+                          <span class="<%= feed_badge_classes %> inline-flex items-center rounded-full px-3 py-1 text-xs font-medium">
+                            <%= feed_badge_label %>
+                          </span>
+                        </div>
                       </td>
                       <td class="px-5 py-4">
                         <div class="flex items-center gap-3">

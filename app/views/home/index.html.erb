@@ -35,7 +35,7 @@
         <%= button_to "เข้า Idea 01",
                       prototype_flow_path,
                       method: :patch,
-                      params: { flow: :auto_sync, return_to: (sales_mode? ? stock_orders_path(tab: :incoming) : forecasts_path) },
+                      params: { flow: :auto_sync, reset_demo: true, return_to: (sales_mode? ? stock_orders_path(tab: :incoming) : forecasts_path) },
                       class: "app-btn-primary inline-flex items-center rounded-xl px-5 py-3 text-sm font-medium transition" %>
       </div>
     </div>
@@ -64,7 +64,7 @@
         <%= button_to "เข้า Idea 02",
                       prototype_flow_path,
                       method: :patch,
-                      params: { flow: :import_file, return_to: (sales_mode? ? stock_orders_path(tab: :incoming) : import_flow_path) },
+                      params: { flow: :import_file, reset_demo: true, return_to: (sales_mode? ? stock_orders_path(tab: :incoming) : import_flow_path) },
                       class: "app-btn-secondary inline-flex items-center rounded-xl px-5 py-3 text-sm font-medium transition" %>
       </div>
     </div>

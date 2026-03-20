@@ -1,24 +1,40 @@
 class ImportFlowsController < ApplicationController
   REPORT_TYPES = %w[daily weekly monthly].freeze
+  IMPORT_SEQUENCE = %w[monthly weekly daily].freeze
 
   before_action :redirect_sales_mode_to_stock_workspace
   before_action :redirect_auto_sync_flow_to_forecasts
 
   def show
-    @current_report_type = normalized_report_type
     reset_demo_baseline_if_needed
-    @latest_import_run = ForecastSyncRun.status_completed.where(source_report_type: @current_report_type).order(started_at: :desc).first
-    @import_rows = SupplyForecast.active_feed.where(source_report_type: @current_report_type).order(:source_batch_key, :source_line_no).limit(8)
-    @import_batches = @import_rows.group_by(&:source_batch_key)
-    @ordered_count = @import_rows.count { |forecast| forecast.stock_plan_item&.status_ordered? }
-    @incoming_count = @import_rows.count { |forecast| forecast.stock_plan_item&.status_incoming? }
+    @import_initialized = import_initialized?
+    @current_report_type = latest_report_type
+    @next_report_type = next_report_type
+    @latest_import_run = latest_import_run
+    @first_import_presentation = session[:first_import_badge_report_type] == @current_report_type
+
+    if @import_initialized
+      @import_rows = SupplyForecast.active_feed.where(source_report_type: @current_report_type).order(:source_batch_key, :source_line_no).limit(8)
+      @import_batches = @import_rows.group_by(&:source_batch_key)
+      @ordered_count = @import_rows.count { |forecast| forecast.stock_plan_item&.status_ordered? }
+      @incoming_count = @import_rows.count { |forecast| forecast.stock_plan_item&.status_incoming? }
+    else
+      @import_rows = []
+      @import_batches = {}
+      @ordered_count = 0
+      @incoming_count = 0
+    end
   end
 
   def import
-    report_type = normalized_report_type
+    first_import = !import_initialized?
+    report_type = next_report_type
     sleep 1.1 if Rails.env.development?
     result = ForecastManualSyncService.new(report_type: report_type).call
+    session[:import_flow_initialized] = true
     session[:preserve_imported_feed_once] = report_type
+    session[:latest_import_report_type] = report_type
+    session[:first_import_badge_report_type] = report_type if first_import
 
     notice = [
       "#{report_type.titleize} file imported",
@@ -45,8 +61,33 @@ class ImportFlowsController < ApplicationController
     redirect_to forecasts_path, alert: "Auto Sync Flow ใช้งานผ่านหน้า Forecast เป็นหลัก"
   end
 
-  def normalized_report_type
-    REPORT_TYPES.include?(params[:report_type].to_s) ? params[:report_type] : "daily"
+  def latest_report_type
+    return available_report_types.first || "monthly" unless import_initialized?
+
+    preferred = session[:latest_import_report_type].presence_in(available_report_types)
+    preferred || available_report_types.first || "monthly"
+  end
+
+  def next_report_type
+    report_type = params[:feed_type].presence_in(REPORT_TYPES)
+    return report_type if report_type.present?
+
+    types = available_report_types
+    return "monthly" if types.empty?
+
+    last_imported_type = session[:latest_import_report_type].presence_in(types)
+    return latest_report_type if last_imported_type.blank?
+
+    index = types.index(last_imported_type) || 0
+    types[(index + 1) % types.length]
+  end
+
+  def available_report_types
+    @available_report_types ||= begin
+      detected_types = SupplyForecast.active_feed.distinct.order(:source_report_type).pluck(:source_report_type)
+      ordered_types = IMPORT_SEQUENCE.select { |type| detected_types.include?(type) }
+      ordered_types.presence || IMPORT_SEQUENCE
+    end
   end
 
   def reset_demo_baseline_if_needed
@@ -57,6 +98,16 @@ class ImportFlowsController < ApplicationController
   end
 
   def preserve_imported_view_once?
-    session.delete(:preserve_imported_feed_once) == @current_report_type
+    session.delete(:preserve_imported_feed_once) == latest_report_type
+  end
+
+  def import_initialized?
+    session[:import_flow_initialized] == true
+  end
+
+  def latest_import_run
+    return nil unless import_initialized?
+
+    ForecastSyncRun.status_completed.where(source_report_type: @current_report_type).order(started_at: :desc).first
   end
 end
