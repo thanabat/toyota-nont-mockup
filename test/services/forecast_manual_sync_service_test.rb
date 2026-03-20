@@ -123,4 +123,53 @@ class ForecastManualSyncServiceTest < ActiveSupport::TestCase
     assert_not_nil weekly_forecast.estimated_arrival_date
     assert_operator result.promoted_to_incoming, :>=, 1
   end
+
+  test "monthly import keeps data at a rough planning level" do
+    monthly_sync_run = ForecastSyncRun.create!(
+      started_at: 2.hours.ago,
+      trigger_mode: :manual,
+      source_report_type: :monthly,
+      status: :completed
+    )
+
+    SupplyForecast.create!(
+      forecast_sync_run: monthly_sync_run,
+      source_key: "FC-MONTHLY-LEGACY-L1",
+      source_batch_key: "FC-MONTHLY-LEGACY",
+      source_line_no: 1,
+      source_report_type: :monthly,
+      model_code: "CAMRY",
+      model_label: "Camry HEV Premium Luxury",
+      color_name: "Precious Metal",
+      quantity_available: 3,
+      estimated_production_date: nil,
+      estimated_arrival_date: nil,
+      last_synced_at: Time.current
+    )
+
+    result = ForecastManualSyncService.new(report_type: :monthly).call
+    imported_forecast = SupplyForecast.where(forecast_sync_run: result.sync_run).order(:source_line_no).first
+
+    assert_nil imported_forecast.estimated_production_date
+    assert_nil imported_forecast.estimated_arrival_date
+  end
+
+  test "daily import keeps the most complete stock timing data" do
+    result = ForecastManualSyncService.new(report_type: :daily).call
+    imported_forecasts = SupplyForecast.where(forecast_sync_run: result.sync_run)
+    complete_forecast = imported_forecasts.find do |forecast|
+      forecast.quantity_available.present? &&
+        forecast.estimated_production_date.present? &&
+        forecast.estimated_arrival_date.present?
+    end
+
+    assert_not_nil complete_forecast
+  end
+
+  test "daily sync leaves some rows unchanged when file has no new business updates" do
+    result = ForecastManualSyncService.new(report_type: :daily).call
+
+    unchanged_rows = SupplyForecast.where(forecast_sync_run: result.sync_run).last_sync_change_kind_unchanged
+    assert_predicate unchanged_rows, :exists?
+  end
 end

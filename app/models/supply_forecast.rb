@@ -1,5 +1,5 @@
 class SupplyForecast < ApplicationRecord
-  SYNC_TRACKED_ATTRIBUTES = %w[
+  SYNC_ASSIGNABLE_ATTRIBUTES = %w[
     source_batch_key
     source_line_no
     source_report_type
@@ -12,6 +12,18 @@ class SupplyForecast < ApplicationRecord
     estimated_production_date
     estimated_arrival_date
     source_generated_on
+  ].freeze
+
+  SYNC_TRACKED_ATTRIBUTES = %w[
+    source_report_type
+    model_code
+    model_label
+    grade
+    color_code
+    color_name
+    quantity_available
+    estimated_production_date
+    estimated_arrival_date
   ].freeze
 
   enum :source_report_type, { daily: 0, weekly: 1, monthly: 2 }, prefix: true
@@ -34,7 +46,7 @@ class SupplyForecast < ApplicationRecord
     attributes = attributes.stringify_keys
     tracked_changes = sync_tracked_changes?(attributes)
 
-    assign_attributes(attributes.slice(*SYNC_TRACKED_ATTRIBUTES))
+    assign_attributes(attributes.slice(*SYNC_ASSIGNABLE_ATTRIBUTES))
     self.forecast_sync_run = forecast_sync_run
     self.last_synced_at = Time.current
     self.last_sync_change_kind = tracked_changes ? :updated : :unchanged

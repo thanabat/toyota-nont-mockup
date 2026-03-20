@@ -66,4 +66,38 @@ class SupplyForecastTest < ActiveSupport::TestCase
     assert_equal 5, forecast.quantity_available
     assert_not_nil forecast.change_detected_at
   end
+
+  test "apply_sync treats metadata-only refresh as unchanged" do
+    forecast = SupplyForecast.create!(
+      forecast_sync_run: @sync_run,
+      source_key: "FORECAST-003",
+      source_batch_key: "BATCH-003",
+      source_line_no: 1,
+      source_report_type: :daily,
+      model_code: "CAMRY",
+      model_label: "Camry HEV Premium Luxury",
+      quantity_available: 2,
+      estimated_production_date: Date.current + 7.days,
+      estimated_arrival_date: Date.current + 14.days,
+      last_synced_at: Time.current
+    )
+
+    forecast.apply_sync!(
+      {
+        source_report_type: :daily,
+        source_batch_key: "BATCH-004",
+        source_line_no: 9,
+        source_generated_on: Date.current,
+        model_code: "CAMRY",
+        model_label: "Camry HEV Premium Luxury",
+        quantity_available: 2,
+        estimated_production_date: forecast.estimated_production_date,
+        estimated_arrival_date: forecast.estimated_arrival_date
+      },
+      forecast_sync_run: @sync_run
+    )
+
+    assert_predicate forecast, :last_sync_change_kind_unchanged?
+    assert_predicate forecast, :status_available?
+  end
 end

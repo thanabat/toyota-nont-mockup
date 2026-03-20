@@ -58,7 +58,7 @@ class DemoForecastBaselineService
       note: "Baseline plan for weekly showroom requests"
     )
 
-    create_plan_item(primary_plan, "FC-WEEKLY-20260318-001-L1", 2, "Reserve for showroom stock fill")
+    create_plan_item(primary_plan, "FC-DAILY-20260319-001-L1", 2, "Ready for showroom launch")
     create_plan_item(secondary_plan, "FC-WEEKLY-20260318-001-L3", 1, "Requested by showroom Bang Bua Thong")
     create_plan_item(secondary_plan, "FC-MONTHLY-20260315-001-L1", 1, "Early hold for hybrid lead")
 
@@ -99,18 +99,18 @@ class DemoForecastBaselineService
 
   def seed_sales_interests
     create_sales_interest(
-      "FC-MONTHLY-20260315-001-L1",
+      "FC-DAILY-20260319-001-L1",
       sales_name: "กฤตภาส",
       branch_name: "โชว์รูมบางบัวทอง",
       status: :customer_waiting,
-      note: "มีลูกค้ารอ Corolla Cross HEV สีแดง"
+      note: "มีลูกค้ารอ Yaris Ativ สีนี้อยู่"
     )
     create_sales_interest(
-      "FC-MONTHLY-20260315-001-L1",
+      "FC-DAILY-20260319-001-L1",
       sales_name: "ชนินทร์",
       branch_name: "โชว์รูมรัตนาธิเบศร์",
       status: :watching,
-      note: "ใช้เป็นตัวเลือกแทนกลุ่มลูกค้า SUV ไฮบริด"
+      note: "ใช้เป็นตัวเลือกรถพร้อมเข้าล็อตด่วน"
     )
     create_sales_interest(
       "FC-WEEKLY-20260318-001-L3",
@@ -187,12 +187,12 @@ class DemoForecastBaselineService
       source_report_type: :daily,
       model_code: "YARIS-ATIV",
       model_label: "Yaris Ativ Sport Premium",
-      grade: nil,
+      grade: "Sport Premium",
       color_code: "089",
       color_name: "Platinum White Pearl",
-      quantity_available: nil,
-      estimated_production_date: nil,
-      estimated_arrival_date: nil,
+      quantity_available: 3,
+      estimated_production_date: Date.new(2026, 3, 24),
+      estimated_arrival_date: Date.new(2026, 3, 30),
       source_generated_on: Date.new(2026, 3, 19)
     },
     {
@@ -203,12 +203,12 @@ class DemoForecastBaselineService
       source_report_type: :daily,
       model_code: "YARIS-ATIV",
       model_label: "Yaris Ativ Sport Premium",
-      grade: nil,
+      grade: "Sport Premium",
       color_code: "1L0",
       color_name: "Attitude Black Mica",
-      quantity_available: nil,
-      estimated_production_date: nil,
-      estimated_arrival_date: nil,
+      quantity_available: 2,
+      estimated_production_date: Date.new(2026, 3, 25),
+      estimated_arrival_date: Date.new(2026, 3, 31),
       source_generated_on: Date.new(2026, 3, 19)
     },
     {
@@ -219,12 +219,12 @@ class DemoForecastBaselineService
       source_report_type: :daily,
       model_code: "YARIS-CROSS",
       model_label: "Yaris Cross HEV Premium Luxury",
-      grade: nil,
+      grade: "HEV Premium Luxury",
       color_code: "1L0",
       color_name: "Attitude Black Mica",
-      quantity_available: nil,
-      estimated_production_date: nil,
-      estimated_arrival_date: nil,
+      quantity_available: 2,
+      estimated_production_date: Date.new(2026, 3, 26),
+      estimated_arrival_date: Date.new(2026, 4, 1),
       source_generated_on: Date.new(2026, 3, 19)
     },
     {
@@ -235,12 +235,12 @@ class DemoForecastBaselineService
       source_report_type: :daily,
       model_code: "YARIS-CROSS",
       model_label: "Yaris Cross HEV Premium Luxury",
-      grade: nil,
+      grade: "HEV Premium Luxury",
       color_code: "1K3",
       color_name: "Urban Metal",
-      quantity_available: nil,
-      estimated_production_date: nil,
-      estimated_arrival_date: nil,
+      quantity_available: 1,
+      estimated_production_date: Date.new(2026, 3, 27),
+      estimated_arrival_date: Date.new(2026, 4, 2),
       source_generated_on: Date.new(2026, 3, 19)
     },
     {
@@ -251,12 +251,12 @@ class DemoForecastBaselineService
       source_report_type: :daily,
       model_code: "COROLLA-ALTIS",
       model_label: "Corolla Altis GR Sport",
-      grade: nil,
+      grade: "GR Sport",
       color_code: "040",
       color_name: "Super White",
-      quantity_available: nil,
-      estimated_production_date: nil,
-      estimated_arrival_date: nil,
+      quantity_available: 2,
+      estimated_production_date: Date.new(2026, 3, 28),
+      estimated_arrival_date: Date.new(2026, 4, 3),
       source_generated_on: Date.new(2026, 3, 19)
     },
     {
@@ -347,12 +347,12 @@ class DemoForecastBaselineService
       source_report_type: :monthly,
       model_code: "COROLLA-CROSS",
       model_label: "Corolla Cross HEV Premium",
-      grade: "HEV Premium",
+      grade: nil,
       color_code: "3U5",
       color_name: "Red Mica Metallic",
       quantity_available: 2,
-      estimated_production_date: Date.new(2026, 4, 8),
-      estimated_arrival_date: Date.new(2026, 4, 18),
+      estimated_production_date: nil,
+      estimated_arrival_date: nil,
       source_generated_on: Date.new(2026, 3, 15)
     },
     {
@@ -363,12 +363,12 @@ class DemoForecastBaselineService
       source_report_type: :monthly,
       model_code: "COROLLA-CROSS",
       model_label: "Corolla Cross HEV Premium",
-      grade: "HEV Premium",
+      grade: nil,
       color_code: "089",
       color_name: "Platinum White Pearl",
       quantity_available: 3,
-      estimated_production_date: Date.new(2026, 4, 10),
-      estimated_arrival_date: Date.new(2026, 4, 20),
+      estimated_production_date: nil,
+      estimated_arrival_date: nil,
       source_generated_on: Date.new(2026, 3, 15)
     },
     {
@@ -379,12 +379,12 @@ class DemoForecastBaselineService
       source_report_type: :monthly,
       model_code: "CAMRY",
       model_label: "Camry HEV Premium Luxury",
-      grade: "HEV Premium Luxury",
+      grade: nil,
       color_code: "1J9",
       color_name: "Precious Metal",
       quantity_available: 3,
-      estimated_production_date: Date.new(2026, 4, 12),
-      estimated_arrival_date: Date.new(2026, 4, 22),
+      estimated_production_date: nil,
+      estimated_arrival_date: nil,
       source_generated_on: Date.new(2026, 3, 15)
     },
     {
@@ -395,12 +395,12 @@ class DemoForecastBaselineService
       source_report_type: :monthly,
       model_code: "CAMRY",
       model_label: "Camry HEV Premium Luxury",
-      grade: "HEV Premium Luxury",
+      grade: nil,
       color_code: "1L0",
       color_name: "Attitude Black Mica",
-      quantity_available: 2,
-      estimated_production_date: Date.new(2026, 4, 14),
-      estimated_arrival_date: Date.new(2026, 4, 24),
+      quantity_available: nil,
+      estimated_production_date: nil,
+      estimated_arrival_date: nil,
       source_generated_on: Date.new(2026, 3, 15)
     },
     {
@@ -411,12 +411,12 @@ class DemoForecastBaselineService
       source_report_type: :monthly,
       model_code: "INNOVA-ZENIX",
       model_label: "Innova Zenix HEV Smart",
-      grade: "HEV Smart",
+      grade: nil,
       color_code: "8W7",
       color_name: "Dark Steel Mica",
-      quantity_available: 5,
-      estimated_production_date: Date.new(2026, 4, 14),
-      estimated_arrival_date: Date.new(2026, 4, 24),
+      quantity_available: nil,
+      estimated_production_date: nil,
+      estimated_arrival_date: nil,
       source_generated_on: Date.new(2026, 3, 15)
     }
   ].freeze

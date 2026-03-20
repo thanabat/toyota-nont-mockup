@@ -167,6 +167,14 @@ class ForecastManualSyncService
   end
 
   def apply_report_completeness!(payload, existing_forecast:, index:, sync_sequence:)
+    if existing_forecast.present? && business_snapshot_unchanged?(index, sync_sequence)
+      payload[:grade] = existing_forecast.grade
+      payload[:quantity_available] = existing_forecast.quantity_available
+      payload[:estimated_production_date] = existing_forecast.estimated_production_date
+      payload[:estimated_arrival_date] = existing_forecast.estimated_arrival_date
+      return payload
+    end
+
     quantity_delta = ((sync_sequence + index) % 3) - 1
     production_shift = (sync_sequence + index) % 3
     arrival_shift = ((sync_sequence + index) % 4) + 1
@@ -175,22 +183,29 @@ class ForecastManualSyncService
     base_arrival_date = existing_forecast&.estimated_arrival_date || Date.current + (sync_sequence + index + 6).days
 
     case @report_type
-    when "daily"
+    when "monthly"
       payload[:grade] = nil if (sync_sequence + index).odd?
-      payload[:quantity_available] = nil
+      payload[:quantity_available] = (sync_sequence + index).modulo(4).zero? ? nil : [ base_quantity + quantity_delta, 1 ].max
       payload[:estimated_production_date] = nil
       payload[:estimated_arrival_date] = nil
     when "weekly"
       payload[:quantity_available] = [ base_quantity + quantity_delta, 1 ].max
       payload[:estimated_production_date] = base_production_date + production_shift.days
-      payload[:estimated_arrival_date] = existing_forecast&.stock_plan_item.present? ? base_arrival_date + arrival_shift.days : nil
-    when "monthly"
+      payload[:estimated_arrival_date] =
+        if existing_forecast&.stock_plan_item.present? || (sync_sequence + index).modulo(3).zero?
+          base_arrival_date + arrival_shift.days
+        end
+    when "daily"
       payload[:quantity_available] = [ base_quantity + quantity_delta, 1 ].max
       payload[:estimated_production_date] = base_production_date + production_shift.days
       payload[:estimated_arrival_date] = base_arrival_date + arrival_shift.days
     end
 
     payload
+  end
+
+  def business_snapshot_unchanged?(index, sync_sequence)
+    (sync_sequence + index).modulo(3) == 1
   end
 
   def batch_key_for(sequence)

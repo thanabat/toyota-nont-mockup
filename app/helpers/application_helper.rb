@@ -183,6 +183,21 @@ module ApplicationHelper
     interest.status_customer_waiting? ? "มีลูกค้ารอ" : "กำลังติดตาม"
   end
 
+  def import_feed_badge(forecast, force_new: false)
+    report_label = forecast.source_report_type.to_s.titleize
+
+    return [ "New from #{report_label}", "bg-violet-100 text-violet-800" ] if force_new
+
+    case forecast.last_sync_change_kind.to_sym
+    when :updated
+      [ "Updated from #{report_label}", "bg-amber-100 text-amber-800" ]
+    when :inserted
+      [ "New from #{report_label}", "bg-violet-100 text-violet-800" ]
+    else
+      [ "No change", "bg-stone-100 text-stone-700" ]
+    end
+  end
+
   private
 
   def forecast_color_style_for(forecast)
