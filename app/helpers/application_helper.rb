@@ -21,6 +21,48 @@ module ApplicationHelper
     "P25" => "background-color: #202124;"
   }.freeze
 
+  IMPORT_STAGE_DEFINITIONS = {
+    "monthly" => {
+      file_code: "PRE_ASS_SCDL",
+      short_label: "Pre-Assignment",
+      title: "Pre-Assignment Plan",
+      summary: "ข้อมูลแผนจัดสรรล่วงหน้าระดับ Model + Sfx ก่อนผูกเป็นรถรายคัน",
+      upload_title: "อัปโหลดไฟล์ PRE_ASS_SCDL",
+      upload_hint: "ใช้สำหรับนำเข้าแผนจัดสรรล่วงหน้า เพื่อสร้างฐานข้อมูลต้นน้ำของรอบเดือนนี้ในระบบ",
+      guideline: "ตรวจสอบจำนวนรวมต่อรุ่นและรอบเดือนเป็นหลัก ยังไม่คาดหวัง VIN รายคันหรือข้อมูล invoice",
+      pending_label: "อยู่ระหว่างวางแผน",
+      ready_label: "พร้อมเชื่อมไป Assigned",
+      pending_description: "ใช้ติดตามข้อมูลต้นน้ำที่ยังอยู่ระดับจำนวนรวมและรอบเดือน",
+      ready_description: "ใช้ดูรายการที่เริ่มมีข้อมูลพอให้เชื่อมต่อไปยังข้อมูลรถรายคันในขั้น Assigned"
+    },
+    "weekly" => {
+      file_code: "ASS_SCDL",
+      short_label: "Assigned",
+      title: "Assigned Vehicles",
+      summary: "ข้อมูลรถรายคันที่บริษัทแม่จัดสรรให้ดีลเลอร์แล้ว",
+      upload_title: "อัปโหลดไฟล์ ASS_SCDL",
+      upload_hint: "ใช้สำหรับอัปเดตรถที่ถูก assign แล้ว เพื่อเชื่อมจากแผนรวมไปสู่ VIN รายคันที่ผูกกับดีลเลอร์",
+      guideline: "ตรวจสอบ VIN, สี, assign date และ ETA ที่อัปเดตแล้ว เพื่อยืนยันว่ารถเริ่มลงมาถึงระดับปฏิบัติการ",
+      pending_label: "อยู่ใน Assigned",
+      ready_label: "พร้อมเชื่อมไป Daily Invoice",
+      pending_description: "ใช้ติดตามรถรายคันที่ถูกจัดสรรแล้ว แต่ยังไม่ถึงขั้น invoice",
+      ready_description: "ใช้ดูรายการที่มีข้อมูลปลายทางครบขึ้นจนพร้อมเชื่อมต่อไปยัง Daily Invoice"
+    },
+    "daily" => {
+      file_code: "DAILY_INV",
+      short_label: "Daily Invoice",
+      title: "Invoiced / Outbound",
+      summary: "ข้อมูลรถรายคันที่ไปถึงขั้น Invoice และกำลังปล่อยเข้าดีลเลอร์",
+      upload_title: "อัปโหลดไฟล์ DAILY_INV",
+      upload_hint: "ใช้สำหรับอัปเดตข้อมูลปลายทางของรถที่ออก invoice แล้ว เพื่อให้ระบบเห็นสถานะ outbound ล่าสุด",
+      guideline: "ตรวจสอบ invoice no., out to dealer date และ due date เป็นหลัก เพื่อยืนยันว่ารถเข้าสู่ขั้นปลายทางของเอกสารแล้ว",
+      pending_label: "รอข้อมูล Invoice ครบ",
+      ready_label: "อยู่ใน Daily Invoice",
+      pending_description: "ใช้ติดตามรถที่อยู่ในชุด Daily Invoice แต่ข้อมูลปลายทางยังไม่ครบพอจะใช้ต่อได้",
+      ready_description: "ใช้ดูรถที่อยู่ในขั้น Daily Invoice แล้วและพร้อมนำไปใช้ต่อใน incoming / outbound tracking"
+    }
+  }.freeze
+
   def forecast_color_swatch(forecast)
     label = [ forecast.color_name.presence, forecast.color_code.presence ].compact.join(" • ").presence || "ไม่ระบุสี"
     style = forecast_color_style_for(forecast)
@@ -61,7 +103,7 @@ module ApplicationHelper
     if sales_mode?
       "โหมดนี้เน้นการมองเห็น incoming stock, รถที่มีลูกค้ามุ่งหวังหรือจองแล้ว และการติดตามรายการที่ฝ่ายขายสนใจ"
     else
-      "โหมดนี้เน้นการเลือก forecast, สั่งเข้า stock และติดตามการไหลของข้อมูลจากบริษัทแม่"
+      "โหมดนี้เน้นการอัปโหลดไฟล์แต่ละ stage จากบริษัทแม่ แล้วติดตาม journey ของรถจากแผนต้นน้ำไปจนถึงรถที่พร้อมใช้ต่อ"
     end
   end
 
@@ -82,7 +124,7 @@ module ApplicationHelper
 
   def prototype_flow_description
     if import_file_flow?
-      "ฝ่ายจัดสรร export ไฟล์จากระบบบริษัทแม่ แล้วนำเข้า daily, weekly, monthly เข้าระบบเราเพื่ออัปเดต stock ต่ออัตโนมัติ"
+      "ฝ่ายจัดสรรนำไฟล์ PRE_ASS_SCDL, ASS_SCDL และ DAILY_INV จากระบบบริษัทแม่เข้ามาอัปเดต journey ของรถทีละ stage"
     else
       "ข้อมูลจากบริษัทแม่ไหลเข้ามาในระบบเราแบบ sync แล้วฝ่ายจัดสรรใช้ต่อจาก forecast ไปยัง stock workspace"
     end
@@ -186,6 +228,98 @@ module ApplicationHelper
     "กำลังติดตาม"
   end
 
+  def import_stage_definition(report_type)
+    IMPORT_STAGE_DEFINITIONS.fetch(report_type.to_s)
+  end
+
+  def import_stage_label(report_type)
+    import_stage_definition(report_type)[:file_code]
+  end
+
+  def import_stage_short_label(report_type)
+    import_stage_definition(report_type)[:short_label]
+  end
+
+  def import_stage_title(report_type)
+    import_stage_definition(report_type)[:title]
+  end
+
+  def import_stage_summary(report_type)
+    import_stage_definition(report_type)[:summary]
+  end
+
+  def import_stage_pending_label(report_type)
+    import_stage_definition(report_type)[:pending_label]
+  end
+
+  def import_stage_ready_label(report_type)
+    import_stage_definition(report_type)[:ready_label]
+  end
+
+  def import_stage_pending_description(report_type)
+    import_stage_definition(report_type)[:pending_description]
+  end
+
+  def import_stage_ready_description(report_type)
+    import_stage_definition(report_type)[:ready_description]
+  end
+
+  def import_stage_upload_title(report_type)
+    import_stage_definition(report_type)[:upload_title]
+  end
+
+  def import_stage_upload_hint(report_type)
+    import_stage_definition(report_type)[:upload_hint]
+  end
+
+  def import_stage_guideline(report_type)
+    import_stage_definition(report_type)[:guideline]
+  end
+
+  def import_stage_cards
+    ImportFlowsController::IMPORT_SEQUENCE.map do |report_type|
+      {
+        report_type: report_type,
+        file_code: import_stage_label(report_type),
+        short_label: import_stage_short_label(report_type),
+        title: import_stage_title(report_type),
+        summary: import_stage_summary(report_type)
+      }
+    end
+  end
+
+  def import_stage_tab_label(report_type, tab_key)
+    return "ทั้งหมด" if tab_key == "all"
+
+    if tab_key == "ordered"
+      import_stage_pending_label(report_type)
+    else
+      import_stage_ready_label(report_type)
+    end
+  end
+
+  def import_stage_collection_title(report_type, tab_key)
+    case tab_key
+    when "ordered"
+      import_stage_pending_label(report_type)
+    when "incoming"
+      import_stage_ready_label(report_type)
+    else
+      "#{import_stage_label(report_type)} ทั้งหมด"
+    end
+  end
+
+  def import_stage_collection_description(report_type, tab_key)
+    case tab_key
+    when "ordered"
+      import_stage_pending_description(report_type)
+    when "incoming"
+      import_stage_ready_description(report_type)
+    else
+      "มองข้อมูลของ stage ปัจจุบันทั้งหมด เพื่อเช็กว่าหลัง upload แล้วแต่ละรายการอยู่ช่วงไหนของ journey"
+    end
+  end
+
   def import_comparison_key(forecast)
     [
       forecast.model_code.presence || forecast.model_label,
@@ -194,7 +328,7 @@ module ApplicationHelper
   end
 
   def import_feed_badge(forecast, force_new: false, previous_forecast: nil)
-    report_label = forecast.source_report_type.to_s.titleize
+    report_label = import_stage_label(forecast.source_report_type)
 
     return [ "New from #{report_label}", "bg-violet-100 text-violet-800" ] if force_new
     return [ "New from #{report_label}", "bg-violet-100 text-violet-800" ] if previous_forecast.blank?
@@ -208,8 +342,8 @@ module ApplicationHelper
   end
 
   def import_source_badge(forecast)
-    report_label = forecast.source_report_type.to_s.titleize
-    [ "จาก #{report_label}", "bg-stone-100 text-stone-700" ]
+    report_label = import_stage_label(forecast.source_report_type)
+    [ report_label, "bg-stone-100 text-stone-700" ]
   end
 
   def import_tracking_incoming?(forecast)
@@ -220,9 +354,15 @@ module ApplicationHelper
 
   def import_tracking_status_badge(forecast)
     if import_tracking_incoming?(forecast)
-      [ "กำลังเข้า", "bg-emerald-100 text-emerald-800" ]
+      [
+        import_stage_ready_label(forecast.source_report_type),
+        "bg-emerald-100 text-emerald-800"
+      ]
     else
-      [ "สั่งเข้าแล้ว", "bg-sky-100 text-sky-800" ]
+      [
+        import_stage_pending_label(forecast.source_report_type),
+        "bg-sky-100 text-sky-800"
+      ]
     end
   end
 

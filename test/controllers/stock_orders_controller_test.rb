@@ -111,16 +111,16 @@ class StockOrdersControllerTest < ActionDispatch::IntegrationTest
     get stock_orders_url
 
     assert_response :success
-    assert_select "h1", /รายการติดตาม/
-    assert_select "h2", /รายการทั้งหมดที่เข้าสู่ระบบจากไฟล์นำเข้า/
+    assert_select "h1", /Pre-Assignment Plan/
+    assert_select "h2", /PRE_ASS_SCDL ทั้งหมด/
     assert_select "th", text: /Stock/, count: 0
-    assert_select "th", /อัปเดตล่าสุดจาก/
+    assert_select "th", /แหล่งข้อมูลล่าสุด/
     assert_select "th", /Prod\. Date/
     assert_select "th", /ETA/
     assert_select "th", text: /รายการสั่งเข้า Stock/, count: 0
     assert_select "td", /Camry HEV Premium Luxury/
-    assert_select "span", /จาก Monthly/
-    assert_select "span", /สั่งเข้าแล้ว/
+    assert_select "span", /PRE_ASS_SCDL/
+    assert_select "span", /อยู่ระหว่างวางแผน/
   end
 
   test "should get stock order detail" do

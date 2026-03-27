@@ -2,90 +2,229 @@
 
 <section class="space-y-8">
   <div class="space-y-3 px-1">
-    <p class="app-eyebrow text-xs font-semibold uppercase tracking-[0.24em] text-[#e20712]">Import File Flow</p>
-    <h1 class="text-3xl font-semibold tracking-tight text-stone-900">นำเข้าไฟล์อัปเดตจากระบบบริษัทแม่</h1>
+    <p class="app-eyebrow text-xs font-semibold uppercase tracking-[0.24em] text-[#e20712]">Data Import</p>
+    <h1 class="text-3xl font-semibold tracking-tight text-stone-900">นำเข้าข้อมูลจากระบบบริษัทแม่ตามลำดับเอกสาร</h1>
     <p class="max-w-4xl text-sm leading-6 text-stone-500">
-      แนวคิดนี้จำลองการที่ฝ่ายจัดสรร export คำสั่งซื้อหรือไฟล์อัปเดตจากระบบแม่ แล้วนำข้อมูล daily, weekly, monthly เข้าระบบเรา
-      เพื่อให้ระบบของเราสร้างหรืออัปเดตรายการสั่งซื้อที่ต้องติดตามต่อจากไฟล์ล่าสุดโดยอัตโนมัติ
+      หน้านี้ใช้สำหรับนำเข้าข้อมูลจากระบบบริษัทแม่ตามลำดับของเอกสาร PRE_ASS_SCDL, ASS_SCDL และ DAILY_INV
+      เพื่อให้ระบบอัปเดตสถานะของข้อมูลตั้งแต่แผนจัดสรรล่วงหน้า ไปจนถึงรถรายคันที่อยู่ในขั้น Invoice
     </p>
   </div>
 
-  <div class="app-soft-card rounded-3xl border p-8 shadow-sm">
-    <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-end">
-      <%= form_with url: import_flow_import_path,
-                    method: :post,
-                    html: { multipart: true },
-                    class: "flex w-full flex-col gap-3",
-                    data: {
-                      controller: "sync-feedback import-file-picker",
-                      action: "turbo:submit-start->sync-feedback#start turbo:submit-end->sync-feedback#reset",
-                      sync_feedback_message_value: "กำลังนำเข้าไฟล์และอัปเดต stock workspace..."
-                    } do %>
-        <div class="w-full rounded-3xl border border-stone-200 bg-stone-50 p-4">
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p class="text-sm font-medium text-stone-900">เลือกไฟล์อัปเดตจากเครื่อง</p>
-              <p class="mt-1 text-sm text-stone-500">ใช้ไฟล์อะไรก็ได้เพื่อจำลองการ import จริง แล้วระบบจะอัปเดตข้อมูล demo ให้เหมือนรับไฟล์เข้ามาแล้ว</p>
+  <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="text-sm font-medium text-stone-900">Import Sequence</p>
+        <p class="mt-1 text-sm text-stone-500">ตรวจสอบลำดับเอกสารที่ระบบรองรับ และอัปโหลดไฟล์ในขั้นที่ต้องการจาก section ของแต่ละ stage ได้โดยตรง</p>
+      </div>
+      <div class="text-sm text-stone-500">Stage ที่แนะนำให้อัปโหลดถัดไป: <span class="font-semibold text-stone-900"><%= import_stage_label(@next_report_type) %></span></div>
+    </div>
+
+    <div class="mt-6">
+      <div class="hidden items-start gap-0 lg:flex">
+        <% import_stage_cards.each_with_index do |stage, index| %>
+          <% stage_index = ImportFlowsController::IMPORT_SEQUENCE.index(stage[:report_type]) %>
+          <% current_index = ImportFlowsController::IMPORT_SEQUENCE.index(@current_report_type) %>
+          <% next_index = ImportFlowsController::IMPORT_SEQUENCE.index(@next_report_type) %>
+          <% current_stage = stage[:report_type] == @current_report_type %>
+          <% next_stage = stage[:report_type] == @next_report_type %>
+          <% completed_stage = @import_initialized && stage_index < current_index %>
+          <% locked_stage = stage_index > next_index %>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center">
+              <div class="<%= next_stage ? 'border-[#e20712] bg-[#e20712] text-white' : (current_stage || completed_stage ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-300 bg-white text-stone-500') %> inline-flex h-11 w-11 items-center justify-center rounded-full border text-sm font-semibold shadow-sm">
+                <%= index + 1 %>
+              </div>
+              <% unless index == import_stage_cards.size - 1 %>
+                <div class="mx-3 h-px flex-1 <%= completed_stage || current_stage || next_stage ? 'bg-stone-900' : 'bg-stone-200' %>"></div>
+              <% end %>
             </div>
 
-            <button type="button"
-                    data-action="import-file-picker#browse"
-                    class="app-btn-ghost inline-flex items-center justify-center rounded-2xl px-4 py-3 text-sm font-medium transition">
-              Browse file
-            </button>
+            <div class="mt-4 pr-6">
+              <div class="flex items-center gap-2">
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400"><%= stage[:short_label] %></p>
+                <% if next_stage %>
+                  <span class="inline-flex items-center rounded-full bg-[#fff1f2] px-2.5 py-1 text-[11px] font-semibold text-[#be123c]">แนะนำให้อัปโหลด</span>
+                <% elsif current_stage %>
+                  <span class="inline-flex items-center rounded-full bg-stone-900 px-2.5 py-1 text-[11px] font-semibold text-white">ข้อมูลล่าสุดในระบบ</span>
+                <% elsif completed_stage %>
+                  <span class="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-semibold text-stone-700">มีประวัติการนำเข้า</span>
+                <% elsif locked_stage %>
+                  <span class="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-semibold text-stone-500">รอขั้นก่อนหน้า</span>
+                <% end %>
+              </div>
+              <h2 class="mt-2 text-base font-semibold text-stone-900"><%= stage[:file_code] %></h2>
+              <p class="mt-2 text-sm font-medium text-stone-900"><%= stage[:title] %></p>
+              <p class="mt-2 text-sm leading-6 text-stone-500"><%= stage[:summary] %></p>
+              <div class="mt-4 rounded-2xl border border-stone-200 bg-stone-50 p-4">
+                <% if locked_stage %>
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="min-w-0 flex-1">
+                      <p class="text-sm font-medium text-stone-900"><%= import_stage_upload_title(stage[:report_type]) %></p>
+                      <p class="mt-2 text-sm leading-6 text-stone-500"><%= import_stage_upload_hint(stage[:report_type]) %></p>
+                      <p class="mt-3 text-xs font-medium uppercase tracking-[0.16em] text-stone-400">ข้อควรตรวจสอบ</p>
+                      <p class="mt-2 text-sm leading-6 text-stone-500"><%= import_stage_guideline(stage[:report_type]) %></p>
+                    </div>
+                    <button type="button" disabled class="inline-flex shrink-0 cursor-not-allowed items-center rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-medium text-stone-400">
+                      Upload File
+                    </button>
+                  </div>
+                <% else %>
+                  <%= form_with url: import_flow_import_path,
+                                method: :post,
+                                html: { multipart: true },
+                                class: "flex flex-col gap-3",
+                                data: {
+                                  controller: "sync-feedback import-file-picker",
+                                  action: "turbo:submit-start->sync-feedback#start turbo:submit-end->sync-feedback#reset",
+                                  sync_feedback_message_value: "กำลังนำเข้าไฟล์ #{stage[:file_code]} และอัปเดตข้อมูลในระบบ...",
+                                  import_file_picker_submit_on_select_value: true
+                                } do %>
+                    <%= hidden_field_tag :feed_type, stage[:report_type] %>
+                    <input type="file"
+                           name="import_file"
+                           class="hidden"
+                           accept=".csv,.xlsx,.xls,.txt"
+                           data-import-file-picker-target="input"
+                           data-action="change->import-file-picker#selected">
+                    <div class="flex items-start justify-between gap-4">
+                      <div class="min-w-0 flex-1">
+                        <p class="text-sm font-medium text-stone-900"><%= import_stage_upload_title(stage[:report_type]) %></p>
+                        <p class="mt-2 text-sm leading-6 text-stone-500"><%= import_stage_upload_hint(stage[:report_type]) %></p>
+                        <p class="mt-3 text-xs font-medium uppercase tracking-[0.16em] text-stone-400">ข้อควรตรวจสอบ</p>
+                        <p class="mt-2 text-sm leading-6 text-stone-500"><%= import_stage_guideline(stage[:report_type]) %></p>
+                        <p class="mt-3 text-xs text-stone-400" data-import-file-picker-target="fileName">ยังไม่ได้เลือกไฟล์</p>
+                      </div>
+                      <button type="button"
+                              data-action="import-file-picker#browse"
+                              data-sync-feedback-target="button"
+                              class="<%= next_stage ? 'app-btn-primary text-white' : 'app-btn-ghost text-stone-700' %> inline-flex shrink-0 items-center rounded-2xl px-4 py-3 text-sm font-medium transition">
+                        Upload File
+                      </button>
+                    </div>
+                    <div data-sync-feedback-target="panel" class="hidden rounded-2xl border border-[#fecdd3] bg-[#fff1f2] px-4 py-3 text-sm text-[#be123c]">
+                      <div class="flex items-center gap-3">
+                        <span class="inline-flex h-3 w-3 animate-pulse rounded-full bg-[#e20712]"></span>
+                        <span data-sync-feedback-target="label">กำลังนำเข้าไฟล์...</span>
+                      </div>
+                    </div>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
           </div>
+        <% end %>
+      </div>
 
-          <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div class="min-w-0 rounded-2xl border border-dashed border-stone-300 bg-white px-4 py-3 text-sm">
-              <input type="file"
-                     name="import_file"
-                     class="hidden"
-                     accept=".csv,.xlsx,.xls,.txt"
-                     data-import-file-picker-target="input"
-                     data-action="change->import-file-picker#selected">
-              <span class="block truncate text-stone-500" data-import-file-picker-target="fileName">ยังไม่ได้เลือกไฟล์</span>
+      <div class="space-y-5 lg:hidden">
+        <% import_stage_cards.each_with_index do |stage, index| %>
+          <% stage_index = ImportFlowsController::IMPORT_SEQUENCE.index(stage[:report_type]) %>
+          <% current_index = ImportFlowsController::IMPORT_SEQUENCE.index(@current_report_type) %>
+          <% next_index = ImportFlowsController::IMPORT_SEQUENCE.index(@next_report_type) %>
+          <% current_stage = stage[:report_type] == @current_report_type %>
+          <% next_stage = stage[:report_type] == @next_report_type %>
+          <% completed_stage = @import_initialized && stage_index < current_index %>
+          <% locked_stage = stage_index > next_index %>
+          <div class="flex gap-4">
+            <div class="flex flex-col items-center">
+              <div class="<%= next_stage ? 'border-[#e20712] bg-[#e20712] text-white' : (current_stage || completed_stage ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-300 bg-white text-stone-500') %> inline-flex h-11 w-11 items-center justify-center rounded-full border text-sm font-semibold shadow-sm">
+                <%= index + 1 %>
+              </div>
+              <% unless index == import_stage_cards.size - 1 %>
+                <div class="mt-2 h-16 w-px <%= completed_stage || current_stage || next_stage ? 'bg-stone-900' : 'bg-stone-200' %>"></div>
+              <% end %>
             </div>
 
-            <button type="submit"
-                    data-sync-feedback-target="button"
-                    data-import-file-picker-target="submit"
-                    data-turbo-submits-with="กำลังนำเข้าไฟล์..."
-                    class="app-btn-primary inline-flex cursor-pointer items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium transition disabled:cursor-not-allowed disabled:bg-stone-400">
-              <span class="inline-flex h-2.5 w-2.5 rounded-full bg-white/80"></span>
-              <span>นำเข้าไฟล์</span>
-            </button>
+            <div class="min-w-0 flex-1 pb-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400"><%= stage[:short_label] %></p>
+                <% if next_stage %>
+                  <span class="inline-flex items-center rounded-full bg-[#fff1f2] px-2.5 py-1 text-[11px] font-semibold text-[#be123c]">แนะนำให้อัปโหลด</span>
+                <% elsif current_stage %>
+                  <span class="inline-flex items-center rounded-full bg-stone-900 px-2.5 py-1 text-[11px] font-semibold text-white">ข้อมูลล่าสุดในระบบ</span>
+                <% elsif completed_stage %>
+                  <span class="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-semibold text-stone-700">มีประวัติการนำเข้า</span>
+                <% elsif locked_stage %>
+                  <span class="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-semibold text-stone-500">รอขั้นก่อนหน้า</span>
+                <% end %>
+              </div>
+              <h2 class="mt-2 text-base font-semibold text-stone-900"><%= stage[:file_code] %></h2>
+              <p class="mt-2 text-sm font-medium text-stone-900"><%= stage[:title] %></p>
+              <p class="mt-2 text-sm leading-6 text-stone-500"><%= stage[:summary] %></p>
+              <div class="mt-4 rounded-2xl border border-stone-200 bg-stone-50 p-4">
+                <% if locked_stage %>
+                  <div class="flex flex-col gap-3">
+                    <p class="text-sm font-medium text-stone-900"><%= import_stage_upload_title(stage[:report_type]) %></p>
+                    <p class="text-sm leading-6 text-stone-500"><%= import_stage_upload_hint(stage[:report_type]) %></p>
+                    <p class="text-xs font-medium uppercase tracking-[0.16em] text-stone-400">ข้อควรตรวจสอบ</p>
+                    <p class="text-sm leading-6 text-stone-500"><%= import_stage_guideline(stage[:report_type]) %></p>
+                    <button type="button" disabled class="inline-flex w-full cursor-not-allowed items-center justify-center rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-medium text-stone-400">
+                      Upload File
+                    </button>
+                  </div>
+                <% else %>
+                  <%= form_with url: import_flow_import_path,
+                                method: :post,
+                                html: { multipart: true },
+                                class: "flex flex-col gap-3",
+                                data: {
+                                  controller: "sync-feedback import-file-picker",
+                                  action: "turbo:submit-start->sync-feedback#start turbo:submit-end->sync-feedback#reset",
+                                  sync_feedback_message_value: "กำลังนำเข้าไฟล์ #{stage[:file_code]} และอัปเดตข้อมูลในระบบ...",
+                                  import_file_picker_submit_on_select_value: true
+                                } do %>
+                    <%= hidden_field_tag :feed_type, stage[:report_type] %>
+                    <input type="file"
+                           name="import_file"
+                           class="hidden"
+                           accept=".csv,.xlsx,.xls,.txt"
+                           data-import-file-picker-target="input"
+                           data-action="change->import-file-picker#selected">
+                    <p class="text-sm font-medium text-stone-900"><%= import_stage_upload_title(stage[:report_type]) %></p>
+                    <p class="text-sm leading-6 text-stone-500"><%= import_stage_upload_hint(stage[:report_type]) %></p>
+                    <p class="text-xs font-medium uppercase tracking-[0.16em] text-stone-400">ข้อควรตรวจสอบ</p>
+                    <p class="text-sm leading-6 text-stone-500"><%= import_stage_guideline(stage[:report_type]) %></p>
+                    <p class="text-xs text-stone-400" data-import-file-picker-target="fileName">ยังไม่ได้เลือกไฟล์</p>
+                    <button type="button"
+                            data-action="import-file-picker#browse"
+                            data-sync-feedback-target="button"
+                            class="<%= next_stage ? 'app-btn-primary text-white' : 'app-btn-ghost text-stone-700' %> inline-flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-medium transition">
+                      Upload File
+                    </button>
+                    <div data-sync-feedback-target="panel" class="hidden rounded-2xl border border-[#fecdd3] bg-[#fff1f2] px-4 py-3 text-sm text-[#be123c]">
+                      <div class="flex items-center gap-3">
+                        <span class="inline-flex h-3 w-3 animate-pulse rounded-full bg-[#e20712]"></span>
+                        <span data-sync-feedback-target="label">กำลังนำเข้าไฟล์...</span>
+                      </div>
+                    </div>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div data-sync-feedback-target="panel" class="hidden rounded-2xl border border-[#fecdd3] bg-[#fff1f2] px-4 py-3 text-sm text-[#be123c]">
-          <div class="flex items-center gap-3">
-            <span class="inline-flex h-3 w-3 animate-pulse rounded-full bg-[#e20712]"></span>
-            <span data-sync-feedback-target="label">กำลังนำเข้าไฟล์...</span>
-          </div>
-        </div>
-      <% end %>
+        <% end %>
+      </div>
     </div>
   </div>
 
   <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
     <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
-      <p class="text-sm text-stone-500"><%= @import_initialized ? "ชุดข้อมูลล่าสุด" : "ไฟล์แรกที่จะนำเข้า" %></p>
-      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @current_report_type.titleize %></p>
+      <p class="text-sm text-stone-500"><%= @import_initialized ? "แหล่งข้อมูลล่าสุด" : "ชุดข้อมูลแรกที่จะนำเข้า" %></p>
+      <p class="mt-3 text-3xl font-semibold text-stone-900"><%= import_stage_label(@current_report_type) %></p>
     </div>
     <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
-      <p class="text-sm text-stone-500"><%= @import_initialized ? "Rows ในไฟล์ล่าสุด" : "Rows ที่แสดงแล้ว" %></p>
+      <p class="text-sm text-stone-500"><%= @import_initialized ? "Rows ใน stage ล่าสุด" : "Rows ที่แสดงแล้ว" %></p>
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @import_rows.size %></p>
     </div>
     <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
-      <p class="text-sm text-stone-500">สร้างใหม่</p>
+      <p class="text-sm text-stone-500">รายการใหม่ใน stage</p>
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @new_count %></p>
     </div>
     <div class="rounded-3xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
-      <p class="text-sm text-amber-700">อัปเดตข้อมูล</p>
+      <p class="text-sm text-amber-700">รายการที่มีการเปลี่ยนแปลง</p>
       <p class="mt-3 text-3xl font-semibold text-amber-900"><%= @updated_count %></p>
     </div>
     <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
-      <p class="text-sm text-stone-500">ไม่มีการเปลี่ยนแปลง</p>
+      <p class="text-sm text-stone-500">รายการไม่เปลี่ยนแปลง</p>
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @unchanged_count %></p>
     </div>
   </div>
@@ -96,18 +235,18 @@
         <h2 class="text-lg font-semibold text-stone-900">ข้อมูลจากไฟล์ล่าสุด</h2>
         <p class="mt-1 text-sm text-stone-500">
           <% if @latest_import_run.present? %>
-            Imported ล่าสุดเมื่อ <%= @latest_import_run.started_at.strftime("%d %b %Y %H:%M") %> • ตรวจพบเป็น <%= @current_report_type.titleize %> feed
+            Imported ล่าสุดเมื่อ <%= @latest_import_run.started_at.strftime("%d %b %Y %H:%M") %> • ตรวจพบเป็น <%= import_stage_label(@current_report_type) %> stage
           <% else %>
-            ยังไม่มีข้อมูลนำเข้าใน session นี้ ระบบจะเริ่มด้วย <%= @next_report_type.titleize %> feed เมื่อกดนำเข้าไฟล์ครั้งแรก
+            ยังไม่มีข้อมูลนำเข้าใน session นี้ ระบบจะแนะนำให้เริ่มด้วย <%= import_stage_label(@next_report_type) %>
           <% end %>
         </p>
       </div>
 
       <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
         <%= if @import_initialized
-              "import ครั้งถัดไปจะหมุนไปจำลองเป็น #{@next_report_type.titleize} feed"
+              "import ครั้งถัดไปจะหมุนไปจำลองเป็น #{import_stage_label(@next_report_type)}"
             else
-              "กดนำเข้าไฟล์ครั้งแรกเพื่อเริ่มสร้างข้อมูลใน flow นี้"
+              "อัปโหลดไฟล์ครั้งแรกเพื่อเริ่มต้นการนำเข้าข้อมูลตามลำดับเอกสาร"
             end %>
       </div>
     </div>
@@ -116,7 +255,7 @@
       <div class="px-4 py-10 text-center">
         <p class="text-base font-medium text-stone-900">ยังไม่มีข้อมูลนำเข้า</p>
         <p class="mt-2 text-sm text-stone-500">
-          เลือกไฟล์อะไรก็ได้แล้วกดนำเข้าไฟล์ เพื่อเริ่มต้นด้วย <%= @next_report_type.titleize %> feed และให้ระบบสร้างข้อมูล demo หลัง import ครั้งแรก
+          เริ่มต้นด้วยการอัปโหลด <%= import_stage_label(@next_report_type) %> เพื่อให้ระบบสร้างข้อมูลตั้งต้นของลำดับเอกสารนี้
         </p>
       </div>
     <% else %>
@@ -126,12 +265,12 @@
             <div class="flex flex-col gap-2 border-b border-stone-200 bg-stone-50 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <div class="flex items-center gap-3">
-                  <span class="inline-flex items-center rounded-full bg-[#15161B] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-white"><%= @current_report_type %></span>
+                  <span class="inline-flex items-center rounded-full bg-[#15161B] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-white"><%= import_stage_short_label(@current_report_type) %></span>
                   <h3 class="text-lg font-semibold text-stone-900"><%= batch_key %></h3>
                 </div>
-                <p class="mt-1 text-sm text-stone-500"><%= rows.size %> lines in this imported file</p>
+                <p class="mt-1 text-sm text-stone-500"><%= rows.size %> lines in this imported file • <%= import_stage_summary(@current_report_type) %></p>
               </div>
-              <%= link_to "ดูรายการติดตามที่อัปเดต", stock_orders_path, class: "app-btn-ghost inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium transition" %>
+              <%= link_to "ดูสถานะหลังนำเข้า", stock_orders_path, class: "app-btn-ghost inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium transition" %>
             </div>
 
             <div class="overflow-x-auto">
@@ -143,7 +282,7 @@
                     <th class="px-5 py-3 font-medium text-right">Qty</th>
                     <th class="px-5 py-3 font-medium">Prod. Date</th>
                     <th class="px-5 py-3 font-medium">ETA</th>
-                    <th class="px-5 py-3 font-medium">รอบ</th>
+                    <th class="px-5 py-3 font-medium">แหล่งข้อมูลล่าสุด</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100 bg-white">
@@ -173,7 +312,7 @@
                       <td class="whitespace-nowrap px-5 py-4 text-stone-600"><%= forecast.estimated_arrival_date&.strftime("%d %b %Y") || "-" %></td>
                       <td class="px-5 py-4">
                         <span class="<%= round_classes %> inline-flex items-center rounded-full px-3 py-1 text-xs font-medium">
-                          <%= round_label.delete_prefix("จาก ") %>
+                          <%= round_label %>
                         </span>
                       </td>
                     </tr>

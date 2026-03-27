@@ -34,13 +34,14 @@ class ImportFlowsController < ApplicationController
     report_type = next_report_type
     sleep 1.1 if Rails.env.development?
     result = ForecastManualSyncService.new(report_type: report_type).call
+    stage_label = view_context.import_stage_label(report_type)
     session[:import_flow_initialized] = true
     session[:preserve_imported_feed_once] = report_type
     session[:latest_import_report_type] = report_type
     session[:first_import_badge_report_type] = report_type if first_import
 
     notice = [
-      "#{report_type.titleize} file imported",
+      "นำเข้าไฟล์ #{stage_label} แล้ว",
       "#{result.updated} updated",
       "#{result.inserted} new",
       "#{result.archived} archived",

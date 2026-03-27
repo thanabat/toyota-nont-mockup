@@ -1,12 +1,12 @@
-<% content_for :title, (import_file_flow? && !sales_mode? ? "รายการติดตาม" : "Stock") %>
+<% content_for :title, (import_file_flow? && !sales_mode? ? "Journey Tracking" : "Stock") %>
 
 <% total_count = import_file_flow? && !sales_mode? ? @all_count : @all_stock_items.size %>
 <% ordered_count = import_file_flow? && !sales_mode? ? @ordered_count : @all_stock_items.count(&:status_ordered?) %>
 <% incoming_count = import_file_flow? && !sales_mode? ? @incoming_count : @all_stock_items.count(&:status_incoming?) %>
 <% tab_links = [
   [ "all", "ทั้งหมด", total_count ],
-  [ "ordered", "สั่งเข้าแล้ว", ordered_count ],
-  [ "incoming", "กำลังเข้า", incoming_count ]
+  [ "ordered", (import_file_flow? && !sales_mode? ? import_stage_tab_label(@tracking_report_type, "ordered") : "สั่งเข้าแล้ว"), ordered_count ],
+  [ "incoming", (import_file_flow? && !sales_mode? ? import_stage_tab_label(@tracking_report_type, "incoming") : "กำลังเข้า"), incoming_count ]
 ] %>
 
 <section class="space-y-8">
@@ -14,14 +14,14 @@
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div>
         <p class="app-eyebrow text-sm font-medium uppercase tracking-[0.2em]">
-          <%= sales_mode? ? "Sales Workspace" : (import_file_flow? ? "Import File Flow" : "Stock Workspace") %>
+          <%= sales_mode? ? "Sales Workspace" : (import_file_flow? ? "Import Journey" : "Stock Workspace") %>
         </p>
-        <h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-900"><%= sales_mode? ? "รถที่กำลังเข้า" : (import_file_flow? ? "รายการติดตาม" : "Stock") %></h1>
+        <h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-900"><%= sales_mode? ? "รถที่กำลังเข้า" : (import_file_flow? ? import_stage_title(@tracking_report_type) : "Stock") %></h1>
         <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
           <% if sales_mode? %>
             มุมมองนี้แสดงเฉพาะรถที่เริ่มมีความชัดว่าจะเข้าจริงแล้ว เพื่อให้ฝ่ายขายติดตามรถที่กำลังเข้า วางแผนเสนอขาย และบันทึกความสนใจของแต่ละสาขาโดยไม่ต้องเห็นข้อมูลเอกสารฝั่งจัดสรร
           <% elsif import_file_flow? %>
-            มุมมองนี้รวมข้อมูลที่นำเข้ามาจากไฟล์ของบริษัทแม่ เพื่อให้ฝ่ายจัดสรรติดตามว่าหลัง import แล้ว รายการไหนยังอยู่ในสถานะสั่งเข้าอยู่ และรายการไหนเริ่มไหลไปเป็นรถกำลังเข้าแล้ว
+            มุมมองนี้รวมข้อมูลของ stage ล่าสุดที่นำเข้ามา เพื่อให้ฝ่ายจัดสรรติดตามว่าหลัง upload แล้ว รายการไหนยังอยู่ใน <%= import_stage_label(@tracking_report_type) %> และรายการไหนเริ่มพร้อมใช้ต่อใน stage ถัดไป
           <% else %>
             มุมมองนี้รวมข้อมูล stock ที่ฝ่ายจัดสรรสั่งไว้และรายการที่เริ่มไหลเป็น stock กำลังเข้าแล้วในหน้าเดียว
             เพื่อให้เห็นเส้นทางจากความต้องการภายใน ไปสู่ pipeline ที่ฝ่ายขายใช้งานต่อได้
@@ -77,19 +77,19 @@
 
   <div class="grid gap-4 md:grid-cols-4">
     <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
-      <p class="text-sm text-stone-500"><%= sales_mode? ? "รถที่กำลังเข้า" : "รายการในมุมมองนี้" %></p>
+      <p class="text-sm text-stone-500"><%= sales_mode? ? "รถที่กำลังเข้า" : (import_file_flow? ? "รายการใน stage นี้" : "รายการในมุมมองนี้") %></p>
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @stock_items.size %></p>
     </div>
     <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
-      <p class="text-sm text-stone-500"><%= sales_mode? ? "รถที่มีเซลล์ติดตาม" : "สั่งเข้าแล้ว" %></p>
+      <p class="text-sm text-stone-500"><%= sales_mode? ? "รถที่มีเซลล์ติดตาม" : (import_file_flow? ? import_stage_pending_label(@tracking_report_type) : "สั่งเข้าแล้ว") %></p>
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= sales_mode? ? @sales_followed_count : ordered_count %></p>
     </div>
     <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
-      <p class="text-sm text-stone-500"><%= sales_mode? ? "รถที่มีลูกค้ามุ่งหวัง/จอง" : "กำลังเข้า" %></p>
+      <p class="text-sm text-stone-500"><%= sales_mode? ? "รถที่มีลูกค้ามุ่งหวัง/จอง" : (import_file_flow? ? import_stage_ready_label(@tracking_report_type) : "กำลังเข้า") %></p>
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= sales_mode? ? @sales_customer_waiting_count : incoming_count %></p>
     </div>
     <div class="rounded-3xl border border-[#fecdd3] bg-[#fff1f2] p-6 shadow-sm">
-      <p class="text-sm text-[#be123c]">Qty รวม</p>
+      <p class="text-sm text-[#be123c]"><%= import_file_flow? && !sales_mode? ? "Qty ใน stage นี้" : "Qty รวม" %></p>
       <p class="mt-3 text-3xl font-semibold text-[#881337]"><%= import_file_flow? && !sales_mode? ? @stock_items.sum { |forecast| forecast.quantity_available.to_i } : @stock_items.sum(&:selected_quantity) %></p>
     </div>
   </div>
@@ -100,24 +100,29 @@
         <h2 class="text-lg font-semibold text-stone-900">รายการรถที่ฝ่ายขายดูได้ตอนนี้</h2>
         <p class="mt-1 text-sm text-stone-500">แสดงเฉพาะ incoming vehicles ที่เริ่มใช้วางแผนเสนอขายได้ โดยตัดข้อมูลเอกสารภายในของฝ่ายจัดสรรออก</p>
       <% else %>
-        <h2 class="text-lg font-semibold text-stone-900">
-          <%=
-            case @active_tab
-            when "ordered" then (import_file_flow? ? "รายการที่นำเข้าแล้วและยังรอข้อมูลเพิ่ม" : "รายการที่สั่งเข้า Stock แล้ว")
-            when "incoming" then (import_file_flow? ? "รายการที่นำเข้าแล้วและกลายเป็นรถกำลังเข้า" : "รายการที่กลายเป็น Stock กำลังเข้า")
-            else (import_file_flow? ? "รายการทั้งหมดที่เข้าสู่ระบบจากไฟล์นำเข้า" : "รายการ Stock ทั้งหมดใน flow")
-            end
-          %>
-        </h2>
-        <p class="mt-1 text-sm text-stone-500">
-          <%=
-            case @active_tab
-            when "ordered" then (import_file_flow? ? "ใช้ติดตามรายการจากไฟล์ที่เริ่มเข้าระบบแล้ว แต่ยังรอข้อมูลจากบริษัทแม่ให้ครบขึ้น" : "ใช้ติดตามรายการที่ฝ่ายจัดสรรสั่งไว้แล้ว แต่ยังรอข้อมูลจากบริษัทแม่ให้ครบขึ้น")
-            when "incoming" then (import_file_flow? ? "ใช้ติดตามรายการนำเข้าที่เริ่มมี Qty, Prod. Date และ ETA ชัดเจนจนพร้อมใช้เป็นรถกำลังเข้า" : "ใช้ติดตาม pipeline stock ที่เริ่มมี Qty, Prod. Date และ ETA ชัดเจนแล้ว")
-            else (import_file_flow? ? "มองข้อมูลชุดเดียวกันแบบต่อเนื่อง ตั้งแต่ import ไฟล์เข้าระบบ จนรายการเริ่มไหลไปเป็นรถกำลังเข้า" : "มองข้อมูลชุดเดียวกันแบบต่อเนื่อง ตั้งแต่สั่งเข้าไปจนเริ่มกลายเป็น stock กำลังเข้า")
-            end
-          %>
-        </p>
+        <% if import_file_flow? %>
+          <h2 class="text-lg font-semibold text-stone-900"><%= import_stage_collection_title(@tracking_report_type, @active_tab) %></h2>
+          <p class="mt-1 text-sm text-stone-500"><%= import_stage_collection_description(@tracking_report_type, @active_tab) %></p>
+        <% else %>
+          <h2 class="text-lg font-semibold text-stone-900">
+            <%=
+              case @active_tab
+              when "ordered" then "รายการที่สั่งเข้า Stock แล้ว"
+              when "incoming" then "รายการที่กลายเป็น Stock กำลังเข้า"
+              else "รายการ Stock ทั้งหมดใน flow"
+              end
+            %>
+          </h2>
+          <p class="mt-1 text-sm text-stone-500">
+            <%=
+              case @active_tab
+              when "ordered" then "ใช้ติดตามรายการที่ฝ่ายจัดสรรสั่งไว้แล้ว แต่ยังรอข้อมูลจากบริษัทแม่ให้ครบขึ้น"
+              when "incoming" then "ใช้ติดตาม pipeline stock ที่เริ่มมี Qty, Prod. Date และ ETA ชัดเจนแล้ว"
+              else "มองข้อมูลชุดเดียวกันแบบต่อเนื่อง ตั้งแต่สั่งเข้าไปจนเริ่มกลายเป็น stock กำลังเข้า"
+              end
+            %>
+          </p>
+        <% end %>
       <% end %>
     </div>
 
@@ -128,7 +133,7 @@
           <%= if sales_mode?
                 "รอให้ฝ่ายจัดสรรสั่งเข้า stock และเช็คสถานะล่าสุดก่อน"
               elsif import_file_flow?
-                "ลองกลับไปที่หน้า Import File เพื่อจำลองการนำเข้า daily, weekly, monthly file ก่อน"
+                "ลองกลับไปที่หน้า Import Stages เพื่อจำลองการนำเข้า PRE_ASS_SCDL, ASS_SCDL หรือ DAILY_INV ก่อน"
               else
                 "ลองกลับไปที่ Forecast เพื่อสั่งเข้า Stock ก่อน หรือกด Sync เพื่อจำลองข้อมูลตอบกลับจากบริษัทแม่"
               end %>
@@ -145,7 +150,7 @@
               <th class="px-5 py-3 font-medium">Model</th>
               <th class="px-5 py-3 font-medium">Color</th>
               <% if import_file_flow? && !sales_mode? %>
-                <th class="px-5 py-3 font-medium">อัปเดตล่าสุดจาก</th>
+                <th class="px-5 py-3 font-medium">แหล่งข้อมูลล่าสุด</th>
                 <th class="px-5 py-3 font-medium">Prod. Date</th>
                 <th class="px-5 py-3 font-medium">ETA</th>
               <% else %>

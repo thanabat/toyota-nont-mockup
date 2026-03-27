@@ -2,6 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["input", "fileName", "submit"]
+  static values = { submitOnSelect: Boolean }
 
   connect() {
     this.updateState()
@@ -13,6 +14,10 @@ export default class extends Controller {
 
   selected() {
     this.updateState()
+
+    if (this.submitOnSelectValue && this.inputTarget.files[0]) {
+      this.element.requestSubmit()
+    }
   }
 
   updateState() {

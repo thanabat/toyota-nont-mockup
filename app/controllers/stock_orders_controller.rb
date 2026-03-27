@@ -17,6 +17,7 @@ class StockOrdersController < ApplicationController
 
     if import_file_flow? && !sales_mode?
       report_type = next_import_report_type
+      stage_label = view_context.import_stage_label(report_type)
       sleep 1.1 if Rails.env.development?
       result = ForecastManualSyncService.new(report_type: report_type).call
       session[:import_flow_initialized] = true
@@ -24,7 +25,7 @@ class StockOrdersController < ApplicationController
       session[:latest_import_report_type] = report_type
 
       notice = [
-        "นำเข้าไฟล์อัปเดตล่าสุดแล้ว",
+        "นำเข้าไฟล์ #{stage_label} ล่าสุดแล้ว",
         "#{result.updated} updated",
         "#{result.inserted} new",
         "#{result.archived} archived",
@@ -77,8 +78,8 @@ class StockOrdersController < ApplicationController
   private
 
   def build_import_tracking_workspace
-    report_type = latest_import_report_type || "monthly"
-    @all_tracking_items = SupplyForecast.active_feed.where(source_report_type: report_type).order(:estimated_arrival_date, :source_batch_key, :source_line_no).to_a
+    @tracking_report_type = latest_import_report_type || "monthly"
+    @all_tracking_items = SupplyForecast.active_feed.where(source_report_type: @tracking_report_type).order(:estimated_arrival_date, :source_batch_key, :source_line_no).to_a
     @ordered_count = @all_tracking_items.count { |forecast| !import_tracking_incoming?(forecast) }
     @incoming_count = @all_tracking_items.count { |forecast| import_tracking_incoming?(forecast) }
     @all_count = @all_tracking_items.size

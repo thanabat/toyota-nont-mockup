@@ -43,7 +43,7 @@ class ForecastsController < ApplicationController
   def redirect_import_flow_to_import_workspace
     return if auto_sync_flow?
 
-    redirect_to import_flow_path(report_type: normalized_report_type), alert: "Import File Flow ใช้งานผ่านหน้า Import File เป็นหลัก"
+    redirect_to import_flow_path(report_type: normalized_report_type), alert: "Import Journey ใช้งานผ่านหน้า Import Stages เป็นหลัก"
   end
 
   def normalized_report_type

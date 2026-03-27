@@ -56,16 +56,20 @@ class ImportFlowsControllerTest < ActionDispatch::IntegrationTest
     get import_flow_url
 
     assert_response :success
-    assert_select "h1", /นำเข้าไฟล์อัปเดตจากระบบบริษัทแม่/
+    assert_select "h1", /นำเข้าข้อมูลจากระบบบริษัทแม่ตามลำดับเอกสาร/
     assert_select "input[type=file][name=import_file]"
-    assert_select "button", /Browse file/
-    assert_select "button", /นำเข้าไฟล์/
+    assert_select "button", /Upload File/
+    assert_select "h2", /PRE_ASS_SCDL/
+    assert_select "h2", /ASS_SCDL/
+    assert_select "h2", /DAILY_INV/
     assert_select "p", /ยังไม่มีข้อมูลนำเข้าใน session นี้/
-    assert_select "div", /กดนำเข้าไฟล์ครั้งแรกเพื่อเริ่มสร้างข้อมูลใน flow นี้/
+    assert_select "div", /อัปโหลดไฟล์ครั้งแรกเพื่อเริ่มต้นการนำเข้าข้อมูลตามลำดับเอกสาร/
     assert_select "p", /ยังไม่มีข้อมูลนำเข้า/
-    assert_select "p", /สร้างใหม่/
-    assert_select "p", /อัปเดตข้อมูล/
-    assert_select "p", /ไม่มีการเปลี่ยนแปลง/
+    assert_select "p", /รายการใหม่ใน stage/
+    assert_select "p", /รายการที่มีการเปลี่ยนแปลง/
+    assert_select "p", /รายการไม่เปลี่ยนแปลง/
+    assert_select "p", /อัปโหลดไฟล์ PRE_ASS_SCDL/
+    assert_select "p", /ข้อควรตรวจสอบ/
   end
 
   test "should run file import for current report type" do
@@ -84,15 +88,15 @@ class ImportFlowsControllerTest < ActionDispatch::IntegrationTest
     follow_redirect!
 
     assert_response :success
-    assert_select "p", /ตรวจพบเป็น Monthly feed/
+    assert_select "p", /ตรวจพบเป็น PRE_ASS_SCDL stage/
     assert_select "h3", /FC-MONTHLY/
-    assert_select "th", /รอบ/
+    assert_select "th", /แหล่งข้อมูลล่าสุด/
     assert_select "span", /สร้างรายการใหม่/
     assert_select "span", text: /อัปเดตข้อมูล/, count: 0
-    assert_select "span", /Monthly/
-    assert_select "p", /สร้างใหม่/
-    assert_select "p", /อัปเดตข้อมูล/
-    assert_select "p", /ไม่มีการเปลี่ยนแปลง/
+    assert_select "span", /PRE_ASS_SCDL/
+    assert_select "p", /รายการใหม่ใน stage/
+    assert_select "p", /รายการที่มีการเปลี่ยนแปลง/
+    assert_select "p", /รายการไม่เปลี่ยนแปลง/
   end
 
   test "should compare weekly import against the previous monthly file" do
@@ -102,9 +106,9 @@ class ImportFlowsControllerTest < ActionDispatch::IntegrationTest
     follow_redirect!
 
     assert_response :success
-    assert_select "p", /ตรวจพบเป็น Weekly feed/
+    assert_select "p", /ตรวจพบเป็น ASS_SCDL stage/
     assert_select "span", /อัปเดตข้อมูล/
-    assert_select "span", /Weekly/
+    assert_select "span", /ASS_SCDL/
     assert_select "td", /Camry HEV Premium Luxury/
   end
 end

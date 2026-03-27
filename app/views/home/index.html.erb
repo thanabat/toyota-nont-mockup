@@ -46,7 +46,7 @@
           <p class="app-eyebrow text-xs font-semibold uppercase tracking-[0.2em]">Idea 02</p>
           <h2 class="mt-2 text-2xl font-semibold text-stone-900">Import File Flow</h2>
           <p class="mt-3 text-sm leading-6 text-stone-600">
-            ฝ่ายจัดสรร export รายงานจากระบบบริษัทแม่ด้วยตัวเอง แล้วนำ daily, weekly, monthly file เข้าระบบเราเพื่ออัปเดตข้อมูลต่อ
+            ฝ่ายจัดสรรนำไฟล์จากระบบบริษัทแม่เข้ามาทีละ stage โดยเริ่มจาก PRE_ASS_SCDL, ตามด้วย ASS_SCDL และปิดท้ายด้วย DAILY_INV
           </p>
         </div>
         <% if import_file_flow? %>
@@ -55,9 +55,9 @@
       </div>
 
       <ul class="mt-6 space-y-2 text-sm text-stone-600">
-        <li>เหมาะกับแนวคิด export/import จากระบบบริษัทแม่</li>
-        <li>จุดเริ่มต้นของฝ่ายจัดสรรคือหน้า Import File</li>
-        <li>ปลายทางยังใช้ Stock workspace ชุดเดิมเหมือนกัน</li>
+        <li>เหมาะกับ workflow จริงที่ user ได้ไฟล์มาจากระบบแม่แล้วค่อยอัปโหลดเข้าเรา</li>
+        <li>เริ่มจากแผนรวมระดับ pre-assignment แล้วค่อยตามต่อถึงรถรายคันและ invoice</li>
+        <li>หลัง import แต่ละ stage ยังมีหน้า tracking เดิมไว้ดูการไหลของข้อมูลต่อได้</li>
       </ul>
 
       <div class="mt-6">
