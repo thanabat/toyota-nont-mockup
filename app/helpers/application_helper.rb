@@ -78,7 +78,7 @@ module ApplicationHelper
   end
 
   def sidebar_link_classes(path)
-    base_classes = "group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition"
+    base_classes = "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition"
     active_classes = "app-nav-link--active"
     inactive_classes = "app-nav-link--inactive"
 
@@ -109,7 +109,7 @@ module ApplicationHelper
 
   def workspace_mode_switch_classes(mode)
     active = current_workspace_mode == mode.to_s
-    base = "inline-flex items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition"
+    base = "inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition"
 
     if active
       "#{base} app-btn-secondary"
@@ -132,7 +132,7 @@ module ApplicationHelper
 
   def prototype_flow_switch_classes(flow)
     active = current_prototype_flow == flow.to_s
-    base = "inline-flex items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition"
+    base = "inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition"
 
     if active
       "#{base} app-btn-primary"

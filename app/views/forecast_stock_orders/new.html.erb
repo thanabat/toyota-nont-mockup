@@ -1,7 +1,7 @@
 <% content_for :title, "สั่งเข้า Stock" %>
 
 <section class="space-y-8">
-  <div class="app-soft-card flex flex-col gap-4 rounded-3xl border p-8 shadow-sm lg:flex-row lg:items-end lg:justify-between">
+  <div class="app-soft-card flex flex-col gap-4 rounded-xl border p-8 shadow-sm lg:flex-row lg:items-end lg:justify-between">
     <div>
       <p class="app-eyebrow text-sm font-medium uppercase tracking-[0.2em]">เลือก Forecast เข้า Stock</p>
       <h1 class="mt-3 text-3xl font-semibold tracking-tight text-stone-900">สั่งเข้า Stock หลายรายการ</h1>
@@ -17,22 +17,22 @@
   </div>
 
   <div class="grid gap-4 md:grid-cols-3">
-    <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
+    <div class="app-soft-card rounded-xl border p-6 shadow-sm">
       <p class="text-sm text-stone-500">Forecast ที่เลือก</p>
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @selected_forecasts.size %></p>
     </div>
-    <div class="rounded-3xl border border-[#fecdd3] bg-[#fff1f2] p-6 shadow-sm">
+    <div class="rounded-xl border border-[#fecdd3] bg-[#fff1f2] p-6 shadow-sm">
       <p class="text-sm text-[#be123c]">จำนวนรถรวมจากข้อมูลที่มี</p>
       <p class="mt-3 text-3xl font-semibold text-[#881337]"><%= @selected_forecasts.sum { |forecast| forecast.quantity_available.to_i } %></p>
     </div>
-    <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
+    <div class="app-soft-card rounded-xl border p-6 shadow-sm">
       <p class="text-sm text-stone-500">ชุดข้อมูลที่กำลังใช้</p>
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @report_type.to_s.titleize %></p>
     </div>
   </div>
 
   <% if defined?(@stock_order_items) && @stock_order_items.any? { |item| item.errors.any? } %>
-    <div class="rounded-3xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-900">
+    <div class="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-900">
       <p class="font-semibold">บันทึกไม่สำเร็จ</p>
       <ul class="mt-3 space-y-1">
         <% @stock_order_items.each do |item| %>
@@ -51,7 +51,7 @@
       <%= hidden_field_tag "stock_order_batch[forecast_ids][]", forecast.id %>
     <% end %>
 
-    <div class="app-soft-card rounded-3xl border p-6 shadow-sm">
+    <div class="app-soft-card rounded-xl border p-6 shadow-sm">
       <h2 class="text-lg font-semibold text-stone-900">เลือกรายการสั่งเข้า Stock</h2>
 
       <div class="mt-5 grid gap-5 lg:grid-cols-[1fr_1fr]">
@@ -74,7 +74,7 @@
       </div>
     </div>
 
-    <div class="app-soft-card overflow-hidden rounded-3xl border shadow-sm">
+    <div class="app-soft-card overflow-hidden rounded-xl border shadow-sm">
       <div class="border-b border-stone-200 px-6 py-4">
         <h2 class="text-lg font-semibold text-stone-900">รายการ forecast ที่จะสั่งเข้า Stock</h2>
       </div>
