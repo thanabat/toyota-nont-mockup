@@ -17,15 +17,15 @@
   </div>
 
   <div class="grid gap-4 md:grid-cols-3">
-    <div class="app-soft-card rounded-xl border p-6 shadow-sm">
+    <div class="app-soft-card rounded-lg border p-6 shadow-sm">
       <p class="text-sm text-stone-500">Forecast ที่เลือก</p>
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @selected_forecasts.size %></p>
     </div>
-    <div class="rounded-xl border border-[#fecdd3] bg-[#fff1f2] p-6 shadow-sm">
+    <div class="rounded-lg border border-[#fecdd3] bg-[#fff1f2] p-6 shadow-sm">
       <p class="text-sm text-[#be123c]">จำนวนรถรวมจากข้อมูลที่มี</p>
       <p class="mt-3 text-3xl font-semibold text-[#881337]"><%= @selected_forecasts.sum { |forecast| forecast.quantity_available.to_i } %></p>
     </div>
-    <div class="app-soft-card rounded-xl border p-6 shadow-sm">
+    <div class="app-soft-card rounded-lg border p-6 shadow-sm">
       <p class="text-sm text-stone-500">ชุดข้อมูลที่กำลังใช้</p>
       <p class="mt-3 text-3xl font-semibold text-stone-900"><%= @report_type.to_s.titleize %></p>
     </div>
@@ -51,7 +51,7 @@
       <%= hidden_field_tag "stock_order_batch[forecast_ids][]", forecast.id %>
     <% end %>
 
-    <div class="app-soft-card rounded-xl border p-6 shadow-sm">
+    <div class="app-soft-card rounded-lg border p-6 shadow-sm">
       <h2 class="text-lg font-semibold text-stone-900">เลือกรายการสั่งเข้า Stock</h2>
 
       <div class="mt-5 grid gap-5 lg:grid-cols-[1fr_1fr]">
@@ -74,7 +74,7 @@
       </div>
     </div>
 
-    <div class="app-soft-card overflow-hidden rounded-xl border shadow-sm">
+    <div class="app-soft-card overflow-hidden rounded-lg border shadow-sm">
       <div class="border-b border-stone-200 px-6 py-4">
         <h2 class="text-lg font-semibold text-stone-900">รายการ forecast ที่จะสั่งเข้า Stock</h2>
       </div>

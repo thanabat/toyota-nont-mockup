@@ -91,7 +91,7 @@
     </div>
   </div>
 
-  <%= form_with url: new_forecast_stock_orders_path, method: :get, scope: nil, data: { controller: "bulk-select" }, class: "overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm" do %>
+  <%= form_with url: new_forecast_stock_orders_path, method: :get, scope: nil, data: { controller: "bulk-select" }, class: "overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm" do %>
     <%= hidden_field_tag :report_type, @current_report_type %>
 
     <% if @forecast_batches.blank? %>
